@@ -1107,23 +1107,38 @@ function showCategory(cat, btn) {
 }
 
 // ── ADD ITEM ──
+const catLabels = {
+  hamburguesas: 'Hamburguesa',
+  chuzos: 'Chuzo',
+  perros: 'Perro Caliente',
+  salchipapas: 'Salchipapa',
+  adicionales: 'Adicional',
+  bebidas: 'Bebida',
+  combos: 'Combo'
+};
+
+let pendingCat = null;
+
 function addItem(cat, id) {
   const item = menu[cat].find(i => i.id === id);
   if (!item) return;
 
   if (item.variants.length === 1) {
-    pushToCart(item, item.variants[0]);
+    pushToCart(item, item.variants[0], cat);
   } else {
+    pendingCat = cat;
     openModal(item);
   }
 }
 
-function pushToCart(item, variant) {
+function pushToCart(item, variant, cat) {
   const existing = cart.find(c => c.id === item.id && c.variantLabel === variant.label);
+  const catLabel = catLabels[cat] || '';
+  const fullName = catLabel ? `${catLabel} ${item.name}` : item.name;
   if (existing) {
     existing.qty++;
   } else {
-    cart.push({ id: item.id, name: item.name, variantLabel: variant.label, price: variant.price, qty: 1 });
+    cart.push({ id: item.id, name: fullName, variantLabel: variant.label, price: variant.price, qty: 1 });
   }
   updateCartUI();
   showToast('✅ Agregado al pedido');
@@ -1151,7 +1166,7 @@ function selectVariant(idx, el) {
 
 function confirmModal() {
   if (!selectedVariant) { alert('Por favor elige una opción'); return; }
-  pushToCart(pendingItem, selectedVariant);
+  pushToCart(pendingItem, selectedVariant, pendingCat);
   closeModal();
 }
 
