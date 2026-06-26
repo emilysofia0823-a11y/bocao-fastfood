@@ -479,7 +479,7 @@
       border-top: 2px solid #2a2a2a;
     }
 
-    .cart-notes {
+    .cart-notes, .cart-address {
       width: 100%;
       background: #1a1a1a;
       border: 1px solid #333;
@@ -488,11 +488,44 @@
       border-radius: 10px;
       font-size: 0.85rem;
       resize: none;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       font-family: inherit;
     }
 
-    .cart-notes:focus { outline: none; border-color: var(--yellow); }
+    .cart-notes:focus, .cart-address:focus { outline: none; border-color: var(--yellow); }
+
+    .cart-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .payment-options {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .payment-opt {
+      flex: 1;
+      background: #1a1a1a;
+      border: 2px solid #333;
+      border-radius: 10px;
+      padding: 10px 6px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .payment-opt:hover { border-color: var(--yellow); }
+    .payment-opt.selected { border-color: var(--yellow); background: rgba(255,215,0,0.08); }
+
+    .payment-opt .pay-icon { font-size: 1.3rem; display: block; margin-bottom: 4px; }
+    .payment-opt .pay-name { font-size: 0.72rem; font-weight: 700; color: var(--text); }
 
     .cart-total {
       display: flex;
@@ -770,6 +803,26 @@
     <div class="cart-empty">Tu carrito está vacío 😔<br/>¡Agrega algo delicioso!</div>
   </div>
   <div class="cart-footer">
+    <span class="cart-label">📍 Dirección de entrega</span>
+    <input type="text" class="cart-address" id="cartAddress" placeholder="Ej: Calle 5 #10-20, Barrio Centro"/>
+
+    <span class="cart-label">💳 Medio de pago</span>
+    <div class="payment-options">
+      <div class="payment-opt" id="pay-efectivo" onclick="selectPayment('Efectivo')">
+        <span class="pay-icon">💵</span>
+        <span class="pay-name">Efectivo</span>
+      </div>
+      <div class="payment-opt" id="pay-nequi" onclick="selectPayment('Nequi')">
+        <span class="pay-icon">📱</span>
+        <span class="pay-name">Nequi</span>
+      </div>
+      <div class="payment-opt" id="pay-bancolombia" onclick="selectPayment('Bancolombia')">
+        <span class="pay-icon">🏦</span>
+        <span class="pay-name">Bancolombia</span>
+      </div>
+    </div>
+
+    <span class="cart-label">📝 Notas</span>
     <textarea class="cart-notes" id="cartNotes" rows="2" placeholder="¿Alguna nota? (sin cebolla, extra salsa...)"></textarea>
     <div class="cart-total">
       <span>Total:</span>
@@ -1012,6 +1065,7 @@ const menu = {
 let cart = [];
 let pendingItem = null;
 let selectedVariant = null;
+let selectedPayment = null;
 
 // ── RENDER MENU ──
 function fmt(n) {
@@ -1151,19 +1205,33 @@ function toggleCart() {
   document.getElementById('cartOverlay').classList.toggle('open');
 }
 
+// ── PAYMENT ──
+function selectPayment(method) {
+  selectedPayment = method;
+  document.querySelectorAll('.payment-opt').forEach(el => el.classList.remove('selected'));
+  document.getElementById('pay-' + method.toLowerCase()).classList.add('selected');
+}
+
 // ── WHATSAPP ──
 function sendWhatsApp(e) {
   e.preventDefault();
   if (cart.length === 0) { alert('¡Tu carrito está vacío!'); return; }
 
+  const address = document.getElementById('cartAddress').value.trim();
+  const notes = document.getElementById('cartNotes').value.trim();
+
+  if (!address) { alert('Por favor ingresa tu dirección de entrega.'); return; }
+  if (!selectedPayment) { alert('Por favor selecciona un medio de pago.'); return; }
+
   const lines = cart.map(i => `• ${i.name} (${i.variantLabel}) x${i.qty} — ${fmt(i.price * i.qty)}`);
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
-  const notes = document.getElementById('cartNotes').value;
 
   let msg = '🍔 *PEDIDO BOCA\'O FAST FOOD*\n\n';
   msg += lines.join('\n');
   msg += `\n\n*Total: ${fmt(total)}*`;
-  if (notes) msg += `\n\n📝 Notas: ${notes}`;
+  msg += `\n📍 *Dirección:* ${address}`;
+  msg += `\n💳 *Pago:* ${selectedPayment}`;
+  if (notes) msg += `\n📝 *Notas:* ${notes}`;
   msg += '\n\n¡Hola! Quiero hacer este pedido 😊';
 
   const url = 'https://wa.me/573337202914?text=' + encodeURIComponent(msg);
