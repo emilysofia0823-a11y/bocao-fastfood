@@ -686,11 +686,47 @@
 
     .float-wa:hover { transform: scale(1.05); }
 
+    /* ── CATEGORY PHOTO BANNER ── */
+    .cat-photo-banner {
+      position: relative;
+      width: 100%;
+      height: 180px;
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .cat-photo-banner img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+    }
+
+    .cat-photo-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 60%);
+      display: flex;
+      align-items: flex-end;
+      padding: 16px 20px;
+    }
+
+    .cat-photo-overlay span {
+      color: white;
+      font-size: 0.9rem;
+      font-weight: 700;
+      font-style: italic;
+      letter-spacing: 0.5px;
+    }
+
     @media (max-width: 480px) {
       header { padding: 12px 16px; }
       .hero { padding: 40px 16px 36px; }
       .menu-section { padding: 16px 16px 100px; }
       .items-grid { grid-template-columns: 1fr; }
+      .cat-photo-banner { height: 140px; }
     }
   </style>
 </head>
@@ -749,6 +785,10 @@
   <!-- HAMBURGUESAS -->
   <div class="category active" id="cat-hamburguesas">
     <div class="category-title">🍔 Hamburguesas</div>
+    <div class="cat-photo-banner">
+      <img src="bocao-fotos/burger-clasica.jpg" alt="Hamburguesa Clásica"/>
+      <div class="cat-photo-overlay"><span>Recién hechas, con todo el sabor</span></div>
+    </div>
     <div class="items-grid" id="grid-hamburguesas"></div>
   </div>
 
@@ -761,12 +801,20 @@
   <!-- PERROS -->
   <div class="category" id="cat-perros">
     <div class="category-title">🌭 Perros Calientes</div>
+    <div class="cat-photo-banner">
+      <img src="bocao-fotos/perros.jpg" alt="Perros Calientes"/>
+      <div class="cat-photo-overlay"><span>El clásico que nunca falla</span></div>
+    </div>
     <div class="items-grid" id="grid-perros"></div>
   </div>
 
   <!-- SALCHIPAPAS -->
   <div class="category" id="cat-salchipapas">
     <div class="category-title">🍟 Salchipapas</div>
+    <div class="cat-photo-banner">
+      <img src="bocao-fotos/salchipapa.jpg" alt="Salchipapas"/>
+      <div class="cat-photo-overlay"><span>Papas crocantes, sabor que enamora</span></div>
+    </div>
     <div class="items-grid" id="grid-salchipapas"></div>
   </div>
 
@@ -866,18 +914,10 @@ const menu = {
   hamburguesas: [
     {
       id: 'h1', name: 'Clásica',
-      desc: 'Carne, mozzarella, tomate, americano, lechuga, tártara, salsa de la casa',
+      desc: 'Carne, tomate, americano, lechuga, tártara, salsa de la casa',
       variants: [
         { label: 'Sin papas', price: 13900 },
         { label: 'Con papas', price: 17000 }
-      ]
-    },
-    {
-      id: 'h2', name: 'Killera',
-      desc: 'Carne, queso costeño frito, maduritos, tomate, americano, lechuga, tártara, salsa de la casa',
-      variants: [
-        { label: 'Sin papas', price: 16500 },
-        { label: 'Con papas', price: 19500 }
       ]
     },
     {
@@ -890,7 +930,7 @@ const menu = {
     },
     {
       id: 'h4', name: 'Rompedieta',
-      desc: 'Doble carne, mozzarella, tomate, americano, lechuga, tártara, salsa de la casa',
+      desc: 'Doble carne, tocineta, cebolla caramelizada, mozzarella, tomate, americano, lechuga, tártara, salsa de la casa',
       variants: [
         { label: 'Sin papas', price: 20900 },
         { label: 'Con papas', price: 23900 }
@@ -944,24 +984,24 @@ const menu = {
       id: 'p1', name: 'Sencillo',
       desc: 'Salchicha, queso costeño, tártara, lechuga, gel de piña, papa chongo',
       variants: [
-        { label: 'Sin papas', price: 7900 },
-        { label: 'Con papas', price: 10000 }
+        { label: 'Sin papas', price: 9000 },
+        { label: 'Con papas', price: 11500 }
       ]
     },
     {
       id: 'p2', name: 'Gratinado',
       desc: 'Salchicha, queso costeño, mozzarella, tártara, lechuga, gel de piña, papa chongo',
       variants: [
-        { label: 'Sin papas', price: 10000 },
-        { label: 'Con papas', price: 13000 }
+        { label: 'Sin papas', price: 11500 },
+        { label: 'Con papas', price: 14000 }
       ]
     },
     {
       id: 'p3', name: 'Gemelo',
       desc: '2 Salchichas, queso costeño, tártara, lechuga, gel de piña, papa chongo',
       variants: [
-        { label: 'Sin papas', price: 11900 },
-        { label: 'Con papas', price: 14900 }
+        { label: 'Sin papas', price: 13000 },
+        { label: 'Con papas', price: 15500 }
       ]
     },
     {
@@ -969,7 +1009,7 @@ const menu = {
       desc: '½ Salchicha suiza, maíz dulce, mozzarella, tocineta, queso costeño, tártara, lechuga, gel de piña, papa chongo',
       variants: [
         { label: 'Sin papas', price: 16900 },
-        { label: 'Con papas', price: 19900 }
+        { label: 'Con papas', price: 19500 }
       ]
     }
   ],
@@ -979,80 +1019,91 @@ const menu = {
       desc: 'Salchicha, queso costeño, tártara, lechuga, gel de piña, papa chongo',
       variants: [
         { label: 'Normal', price: 15900 },
-        { label: 'Gratinada', price: 17900 }
+        { label: 'Gratinada', price: 18000 }
       ]
     },
     {
       id: 's2', name: 'Salchipollo',
       desc: 'Salchicha, pollo, queso costeño, tártara, lechuga, gel de piña, papa chongo',
       variants: [
-        { label: 'Normal', price: 18900 },
-        { label: 'Gratinada', price: 20900 }
-      ]
-    },
-    {
-      id: 's3', name: 'Suiza',
-      desc: 'Salchicha suiza, queso costeño, tártara, lechuga, gel de piña, papa chongo',
-      variants: [
-        { label: 'Normal', price: 23900 },
-        { label: 'Gratinada', price: 25900 }
+        { label: 'Normal', price: 19500 },
+        { label: 'Gratinada', price: 21900 }
       ]
     },
     {
       id: 's4', name: "Boca'o (Para 2)",
       desc: 'Salchicha, butifarra, suiza, queso costeño, mozzarella gratinado, maíz dulce, tártara, lechuga, gel de piña, papa chongo',
-      variants: [{ label: 'Precio', price: 25900 }]
+      variants: [
+        { label: 'Normal', price: 26900 },
+        { label: 'Con pollo o cerdo', price: 31500 }
+      ]
     },
     {
-      id: 's5', name: 'Rompecintura (Para 4 o 5)',
-      desc: 'Salchicha, pollo, carne, cerdo, chorizo, butifarra, queso costeño, tártara, lechuga, gel de piña, papa chongo',
+      id: 's6', name: 'Salvajada (Para 3)',
+      desc: 'Salchicha, pollo, cerdo, chorizo, queso costeño, tártara, lechuga, gel de piña, papa chongo',
       variants: [
-        { label: 'Normal', price: 57300 },
-        { label: 'Gratinada', price: 63100 }
+        { label: 'Normal', price: 38000 },
+        { label: 'Gratinada', price: 42000 }
+      ]
+    },
+    {
+      id: 's5', name: 'Rompecintura (Para 4 ó 5)',
+      desc: 'Salchicha, pollo, cerdo, chorizo, butifarra, queso costeño, tártara, lechuga, gel de piña, papa chongo',
+      variants: [
+        { label: 'Normal', price: 57500 },
+        { label: 'Gratinada', price: 63000 }
       ]
     }
   ],
   adicionales: [
-    { id: 'a1', name: 'Pollo / Carne / Cerdo', desc: 'Proteína adicional a tu antojo', variants: [{ label: 'Precio', price: 5000 }] },
+    { id: 'a1', name: 'Pollo / Cerdo', desc: 'Proteína adicional a tu antojo', variants: [{ label: 'Precio', price: 5000 }] },
     { id: 'a2', name: 'Papas Fritas', desc: 'Porción de papas fritas', variants: [{ label: 'Precio', price: 4000 }] },
     { id: 'a3', name: 'Queso Mozzarella', desc: 'Queso mozzarella derretido', variants: [{ label: 'Precio', price: 3000 }] },
-    { id: 'a4', name: 'Maíz', desc: 'Maíz dulce', variants: [{ label: 'Precio', price: 2000 }] },
-    { id: 'a5', name: 'Tocineta', desc: 'Tocineta crujiente', variants: [{ label: 'Precio', price: 2000 }] },
+    { id: 'a4', name: 'Maíz', desc: 'Maíz dulce', variants: [{ label: 'Precio', price: 2500 }] },
+    { id: 'a5', name: 'Tocineta', desc: 'Tocineta crujiente', variants: [{ label: 'Precio', price: 3000 }] },
     { id: 'a6', name: 'Cebolla Caramelizada', desc: 'Cebolla caramelizada', variants: [{ label: 'Precio', price: 2500 }] },
-    { id: 'a7', name: 'Plátano Maduro', desc: 'Plátano maduro frito', variants: [{ label: 'Precio', price: 1500 }] },
-    { id: 'a8', name: 'Queso Costeño Frito', desc: 'Queso costeño frito crujiente', variants: [{ label: 'Precio', price: 3000 }] },
     { id: 'a9', name: '½ Suiza', desc: 'Media salchicha suiza', variants: [{ label: 'Precio', price: 3500 }] }
   ],
   bebidas: [
     { id: 'b1', name: 'Gaseosa Postobón Cero', desc: '250ml', variants: [{ label: 'Precio', price: 2500 }] },
     { id: 'b2', name: 'Gaseosa Coca Cola', desc: '400ml', variants: [{ label: 'Precio', price: 4000 }] },
-    { id: 'b3', name: 'Gaseosa Postobón', desc: '1.5lt', variants: [{ label: 'Precio', price: 6500 }] }
+    { id: 'b3', name: 'Gaseosa Postobón', desc: '1.75 Lts.', variants: [{ label: 'Precio', price: 7000 }] }
   ],
   combos: [
     {
-      id: 'co1', name: 'Mini',
-      desc: 'Perro mini, papas fritas, gaseosa Postobón cero 250ml',
-      variants: [{ label: 'Precio', price: 8900 }]
+      id: 'co2', name: 'Clásico',
+      desc: '1 Hamburguesa clásica, 1 papas fritas, 1 gaseosa cero 250ml',
+      variants: [{ label: 'Precio', price: 17500 }]
     },
     {
-      id: 'co2', name: 'Clásico',
-      desc: 'Hamburguesa clásica, papas fritas, gaseosa cero 250ml',
-      variants: [{ label: 'Precio', price: 19000 }]
+      id: 'co6', name: 'Triple Antojo',
+      desc: '3 Perros sencillos, 3 gaseosas Postobón cero 250ml',
+      variants: [{ label: 'Precio', price: 28500 }]
     },
     {
       id: 'co3', name: 'Bacano',
-      desc: 'Bollo limpio, lechuga, queso costeño, tártara, papa chongo, salsa de piña',
-      variants: [{ label: 'Precio', price: 37000 }]
+      desc: '1 Salchipollo, 1 perro gemelo, 2 Coca Cola 400ml',
+      variants: [{ label: 'Precio', price: 36400 }]
     },
     {
       id: 'co4', name: 'Doble Golpe',
-      desc: '2 Hamburguesas clásicas, 2 papas fritas, 1 gaseosa 1.5lt',
-      variants: [{ label: 'Precio', price: 39000 }]
+      desc: '2 Hamburguesas clásicas, 2 papas fritas, 1 gaseosa 1.75lt',
+      variants: [{ label: 'Precio', price: 37000 }]
     },
     {
-      id: 'co5', name: 'Tentación XL',
-      desc: '1 Hamburguesa clásica, 1 perro sencillo gratinado, 1 perro suizo, 2 papas fritas, gaseosa 1.5lt',
-      variants: [{ label: 'Precio', price: 49900 }]
+      id: 'co7', name: 'Dúo Crunch',
+      desc: '2 Hamburguesas Crunch Bacon, 2 papas fritas, 2 Coca Cola personal',
+      variants: [{ label: 'Precio', price: 41000 }]
+    },
+    {
+      id: 'co8', name: 'Trio Salvaje',
+      desc: '1 Salchipapa sencilla, 1 hamburguesa clásica, 1 perro sencillo gratinado, 3 gaseosas Postobón cero 250ml',
+      variants: [{ label: 'Precio', price: 42800 }]
+    },
+    {
+      id: 'co9', name: 'Familiar',
+      desc: '2 Hamburguesas clásicas con papas, 1 salchipollo, 2 perros sencillos, 1 gaseosa Postobón 1.75lt',
+      variants: [{ label: 'Precio', price: 70500 }]
     }
   ]
 };
