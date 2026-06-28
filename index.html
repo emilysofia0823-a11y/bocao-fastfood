@@ -771,7 +771,6 @@
 <!-- MENU TABS -->
 <div class="menu-nav" id="menuNav">
   <button class="tab-btn active" onclick="showCategory('hamburguesas', this)">🍔 Hamburguesas</button>
-  <button class="tab-btn" onclick="showCategory('chuzos', this)">🥩 Chuzos</button>
   <button class="tab-btn" onclick="showCategory('perros', this)">🌭 Perros Calientes</button>
   <button class="tab-btn" onclick="showCategory('salchipapas', this)">🍟 Salchipapas</button>
   <button class="tab-btn" onclick="showCategory('combos', this)">🎁 Combos</button>
@@ -792,13 +791,7 @@
     <div class="items-grid" id="grid-hamburguesas"></div>
   </div>
 
-  <!-- CHUZOS -->
-  <div class="category" id="cat-chuzos">
-    <div class="category-title">🥩 Chuzos Desgranados</div>
-    <div class="items-grid" id="grid-chuzos"></div>
-  </div>
-
-  <!-- PERROS -->
+<!-- PERROS -->
   <div class="category" id="cat-perros">
     <div class="category-title">🌭 Perros Calientes</div>
     <div class="cat-photo-banner">
@@ -937,48 +930,6 @@ const menu = {
       ]
     }
   ],
-  chuzos: [
-    {
-      id: 'c1', name: 'Chuzo Cerdo',
-      desc: 'Bollo limpio, lechuga, queso costeño, tártara, papa chongo, salsa de piña',
-      variants: [
-        { label: 'Normal', price: 25900 },
-        { label: 'Gratinado con maíz', price: 28900 }
-      ]
-    },
-    {
-      id: 'c2', name: 'Chuzo Pollo',
-      desc: 'Bollo limpio, lechuga, queso costeño, tártara, papa chongo, salsa de piña',
-      variants: [
-        { label: 'Normal', price: 26900 },
-        { label: 'Gratinado con maíz', price: 29900 }
-      ]
-    },
-    {
-      id: 'c3', name: 'Chuzo Carne',
-      desc: 'Bollo limpio, lechuga, queso costeño, tártara, papa chongo, salsa de piña',
-      variants: [
-        { label: 'Normal', price: 28900 },
-        { label: 'Gratinado con maíz', price: 31900 }
-      ]
-    },
-    {
-      id: 'c4', name: 'Combinado',
-      desc: 'Elige 2 proteínas (carne, cerdo, pollo). Bollo limpio, lechuga, queso costeño, tártara, papa chongo, salsa de piña',
-      variants: [
-        { label: 'Normal', price: 29900 },
-        { label: 'Gratinado con maíz', price: 32900 }
-      ]
-    },
-    {
-      id: 'c5', name: '4 Carnes',
-      desc: 'Carne, pollo, cerdo, chorizo. Bollo limpio, queso costeño, tártara, papa chongo, salsa de piña',
-      variants: [
-        { label: 'Normal', price: 34900 },
-        { label: 'Gratinado con maíz', price: 37900 }
-      ]
-    }
-  ],
   perros: [
     {
       id: 'p1', name: 'Sencillo',
@@ -1082,7 +1033,7 @@ const menu = {
     },
     {
       id: 'co3', name: 'Bacano',
-      desc: '1 Salchipollo, 1 perro gemelo, 2 Coca Cola 400ml',
+      desc: '1 Salchipollo, 1 perro gemelo, 2 gaseosas Postobón cero 250ml',
       variants: [{ label: 'Precio', price: 36400 }]
     },
     {
@@ -1092,7 +1043,7 @@ const menu = {
     },
     {
       id: 'co7', name: 'Dúo Crunch',
-      desc: '2 Hamburguesas Crunch Bacon, 2 papas fritas, 2 Coca Cola personal',
+      desc: '2 Hamburguesas Crunch Bacon, 2 papas fritas, 2 gaseosas Postobón cero 250ml',
       variants: [{ label: 'Precio', price: 41000 }]
     },
     {
@@ -1160,7 +1111,6 @@ function showCategory(cat, btn) {
 // ── ADD ITEM ──
 const catLabels = {
   hamburguesas: 'Hamburguesa',
-  chuzos: 'Chuzo',
   perros: 'Perro Caliente',
   salchipapas: 'Salchipapa',
   adicionales: 'Adicional',
