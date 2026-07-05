@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Boca'o — Ventas</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#0a0a0a;--panel:#141414;--card:#1a1a1a;--border:#2a2a2a;--yellow:#FFD700;--red:#CC0000;--green:#22c55e;--blue:#3b82f6;--text:#f0f0f0;--muted:#666;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;}
+header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:10px 20px;display:flex;align-items:center;gap:12px;}
+.logo{font-size:1rem;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1px;}
+.back{padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;text-decoration:none;}
+.back:hover{border-color:var(--yellow);color:var(--yellow);}
+.logout{margin-left:auto;padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;}
+.logout:hover{border-color:var(--red);color:var(--red);}
+
+/* DATE NAV */
+.date-nav{background:var(--panel);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.date-nav label{font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.date-nav input[type=date]{background:var(--card);border:2px solid var(--border);color:var(--text);padding:8px 12px;border-radius:10px;font-size:0.88rem;outline:none;font-family:inherit;cursor:pointer;}
+.date-nav input[type=date]:focus{border-color:var(--yellow);}
+.quick-btns{display:flex;gap:6px;margin-left:8px;flex-wrap:wrap;}
+.qb{padding:7px 14px;border-radius:50px;border:2px solid var(--border);background:var(--card);color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .2s;}
+.qb:hover,.qb.sel{background:var(--yellow);border-color:var(--yellow);color:#000;}
+.range-toggle{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--muted);}
+
+/* RESUMEN */
+.resumen{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;padding:16px 20px;}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.stat-label{font-size:0.67rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.stat-val{font-size:1.4rem;font-weight:900;color:var(--yellow);}
+.stat-val.green{color:var(--green);}
+.stat-val.blue{color:var(--blue);}
+.stat-val.red{color:var(--red);}
+.stat-sub{font-size:0.72rem;color:var(--muted);margin-top:3px;}
+
+/* PAGO BREAKDOWN */
+.pago-bar{margin:0 20px 16px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.pago-bar-title{font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+.pago-row{display:flex;align-items:center;gap:10px;margin-bottom:7px;}
+.pago-row:last-child{margin-bottom:0;}
+.pago-icon{font-size:1.1rem;width:24px;text-align:center;}
+.pago-name{font-size:0.82rem;font-weight:700;flex:1;}
+.pago-bar-track{flex:2;background:#111;border-radius:50px;height:8px;overflow:hidden;}
+.pago-bar-fill{height:100%;border-radius:50px;transition:width .4s;}
+.pago-amount{font-size:0.82rem;font-weight:700;color:var(--yellow);min-width:80px;text-align:right;}
+
+/* FACTURAS */
+.section-head{padding:8px 20px 6px;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;justify-content:space-between;}
+.filter-row{padding:8px 20px;display:flex;gap:6px;flex-wrap:wrap;}
+.ff{padding:5px 12px;border-radius:50px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:0.72rem;font-weight:700;cursor:pointer;transition:all .2s;}
+.ff.active{background:var(--red);border-color:var(--red);color:#fff;}
+.facturas{padding:0 20px 20px;display:flex;flex-direction:column;gap:8px;}
+.fact-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.fact-head{padding:10px 14px;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;}
+.fact-num{background:var(--red);color:#fff;font-weight:900;font-size:0.78rem;padding:3px 10px;border-radius:50px;}
+.fact-tipo{font-size:0.72rem;font-weight:700;padding:3px 9px;border-radius:50px;}
+.ftdom{background:#1e3a5f;color:#60a5fa;}
+.ftrec{background:#1a2e1a;color:#86efac;}
+.fact-cliente{font-size:0.82rem;font-weight:700;flex:1;}
+.fact-total{font-size:0.95rem;font-weight:900;color:var(--yellow);}
+.fact-hora{font-size:0.7rem;color:var(--muted);}
+.fact-estado{font-size:0.7rem;font-weight:700;padding:3px 9px;border-radius:50px;}
+.est-pagado{background:#14532d;color:var(--green);}
+.est-pendiente{background:#431407;color:#f97316;}
+.fact-body{display:none;border-top:1px solid var(--border);padding:12px 14px;}
+.fact-body.open{display:block;}
+.fact-items{margin-bottom:8px;}
+.fi-row{display:flex;justify-content:space-between;font-size:0.8rem;padding:3px 0;border-bottom:1px dashed #222;}
+.fi-row:last-child{border-bottom:none;}
+.fi-name{color:var(--text);}
+.fi-var{font-size:0.68rem;color:var(--muted);}
+.fi-price{color:var(--yellow);font-weight:700;}
+.fi-obs{font-size:0.68rem;color:#f97316;font-style:italic;padding-left:8px;}
+.fact-totals{border-top:1px dashed #333;padding-top:8px;font-size:0.8rem;}
+.ft-row{display:flex;justify-content:space-between;color:var(--muted);margin-bottom:3px;}
+.ft-row.big{font-weight:900;color:var(--text);font-size:0.95rem;border-top:1px solid #333;padding-top:6px;margin-top:4px;}
+.ft-row.big span:last-child{color:var(--yellow);}
+.ft-pago{color:var(--green);font-weight:700;}
+.empty{text-align:center;padding:40px 20px;color:var(--muted);}
+.loading{text-align:center;padding:40px 20px;color:var(--muted);}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="panel.html">← Panel</a>
+  <div class="logo">📊 Ventas — Boca'o</div>
+  <button class="logout" onclick="logout()">Salir</button>
+</header>
+
+<div class="date-nav">
+  <label>Fecha</label>
+  <input type="date" id="dateInput" onchange="loadDay()"/>
+  <div class="quick-btns">
+    <button class="qb" onclick="goToday()">Hoy</button>
+    <button class="qb" onclick="goOffset(-1)">Ayer</button>
+    <button class="qb" onclick="goOffset(-2)">Hace 2 días</button>
+    <button class="qb" onclick="goOffset(-3)">Hace 3 días</button>
+    <button class="qb" onclick="goOffset(-7)">Hace 1 semana</button>
+  </div>
+</div>
+
+<div class="resumen">
+  <div class="stat"><div class="stat-label">Total del día</div><div class="stat-val" id="sTotal">$0</div><div class="stat-sub" id="sSubLabel"></div></div>
+  <div class="stat"><div class="stat-label">Pedidos</div><div class="stat-val blue" id="sPedidos">0</div><div class="stat-sub" id="sTipos"></div></div>
+  <div class="stat"><div class="stat-label">Domicilios</div><div class="stat-val green" id="sDomicilios">$0</div><div class="stat-sub" id="sDomCnt"></div></div>
+  <div class="stat"><div class="stat-label">Ticket promedio</div><div class="stat-val" id="sPromedio">$0</div><div class="stat-sub">por pedido</div></div>
+</div>
+
+<div class="pago-bar">
+  <div class="pago-bar-title">Desglose por método de pago</div>
+  <div id="pagoDesglose"></div>
+</div>
+
+<div class="section-head">
+  <span>Facturas del día</span>
+  <span id="factCount" style="color:var(--yellow)"></span>
+</div>
+<div class="filter-row">
+  <button class="ff active" id="fAll" onclick="setFF('all')">Todos</button>
+  <button class="ff" id="fPagado" onclick="setFF('pagado')">✅ Pagados</button>
+  <button class="ff" id="fDom" onclick="setFF('domicilio')">🛵 Domicilio</button>
+  <button class="ff" id="fRec" onclick="setFF('recoger')">🏃 Recoger</button>
+</div>
+<div class="facturas" id="factList"><div class="loading">Cargando...</div></div>
+
+<script>
+var sess=JSON.parse(sessionStorage.getItem('bocao_sess')||'null');
+if(!sess||sess.role!=='admin'){window.location.href='/login.html';}
+function logout(){sessionStorage.removeItem('bocao_sess');window.location.href='/login.html';}
+
+var todosData=[], filtroFF='all';
+
+function fmt(n){return'$'+(n||0).toLocaleString('es-CO');}
+
+function isoDate(d){return d.toISOString().split('T')[0];}
+
+function goToday(){var d=new Date();document.getElementById('dateInput').value=isoDate(d);loadDay();}
+function goOffset(n){var d=new Date();d.setDate(d.getDate()+n);document.getElementById('dateInput').value=isoDate(d);loadDay();}
+
+function setFF(f){
+  filtroFF=f;
+  ['All','Pagado','Dom','Rec'].forEach(function(k){document.getElementById('f'+k).classList.remove('active');});
+  var map={all:'All',pagado:'Pagado',domicilio:'Dom',recoger:'Rec'};
+  document.getElementById('f'+map[f]).classList.add('active');
+  renderFacturas();
+}
+
+function loadDay(){
+  var dateStr=document.getElementById('dateInput').value;
+  if(!dateStr)return;
+  document.getElementById('factList').innerHTML='<div class="loading">Cargando...</div>';
+  // Firebase loaded via module below - uses window._loadDay
+  if(window._loadDay)window._loadDay(dateStr);
+}
+
+function renderStats(data){
+  var total=0,domTotal=0,domCnt=0,recCnt=0;
+  var pagoTotals={efectivo:0,nequi:0,transferencia:0};
+  data.forEach(function(p){
+    total+=p.total||0;
+    if(p.tipo==='domicilio'){domTotal+=p.costoEnvio||0;domCnt++;}
+    else recCnt++;
+    if(p.metodoPago)pagoTotals[p.metodoPago]=(pagoTotals[p.metodoPago]||0)+(p.total||0);
+  });
+  document.getElementById('sTotal').textContent=fmt(total);
+  document.getElementById('sSubLabel').textContent=fmt(total-domTotal)+' en productos';
+  document.getElementById('sPedidos').textContent=data.length;
+  document.getElementById('sTipos').textContent=domCnt+' dom / '+recCnt+' recoger';
+  document.getElementById('sDomicilios').textContent=fmt(domTotal);
+  document.getElementById('sDomCnt').textContent='en '+domCnt+' domicilios';
+  document.getElementById('sPromedio').textContent=data.length?fmt(Math.round(total/data.length)):'$0';
+  // pago bar
+  var maxP=Math.max(pagoTotals.efectivo,pagoTotals.nequi,pagoTotals.transferencia,1);
+  var configs=[{k:'efectivo',icon:'💵',name:'Efectivo',color:'#22c55e'},{k:'nequi',icon:'📱',name:'Nequi',color:'#3b82f6'},{k:'transferencia',icon:'🏦',name:'Transferencia',color:'#FFD700'}];
+  document.getElementById('pagoDesglose').innerHTML=configs.map(function(c){
+    var pct=Math.round((pagoTotals[c.k]/maxP)*100);
+    return'<div class="pago-row"><span class="pago-icon">'+c.icon+'</span><span class="pago-name">'+c.name+'</span><div class="pago-bar-track"><div class="pago-bar-fill" style="width:'+pct+'%;background:'+c.color+'"></div></div><span class="pago-amount">'+fmt(pagoTotals[c.k])+'</span></div>';
+  }).join('');
+}
+
+function renderFacturas(){
+  var shown=filtroFF==='all'?todosData:todosData.filter(function(p){
+    if(filtroFF==='pagado')return p.estado==='pagado';
+    return p.tipo===filtroFF;
+  });
+  document.getElementById('factCount').textContent=shown.length+' factura'+(shown.length!==1?'s':'');
+  var el=document.getElementById('factList');
+  if(shown.length===0){el.innerHTML='<div class="empty">No hay facturas para mostrar.</div>';return;}
+  el.innerHTML='';
+  shown.forEach(function(p){
+    var hora=p.fecha?new Date(p.fecha).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}):'';
+    var tTag=p.tipo==='domicilio'?'<span class="fact-tipo ftdom">🛵 Dom</span>':'<span class="fact-tipo ftrec">🏃 Rec</span>';
+    var estClass=p.estado==='pagado'?'est-pagado':'est-pendiente';
+    var estLabel=p.estado==='pagado'?'Pagado':'Pendiente';
+    var cli=p.cliente&&p.cliente.nombre?p.cliente.nombre:'Sin nombre';
+    var mLabels={efectivo:'💵 Efectivo',nequi:'📱 Nequi',transferencia:'🏦 Transferencia'};
+    var itemsHTML=(p.items||[]).map(function(i){
+      return'<div class="fi-row"><div><span class="fi-name">'+i.cantidad+'× '+i.nombre+'</span>'+(i.variante?'<span class="fi-var"> ('+i.variante+')</span>':'')+(i.notas?'<div class="fi-obs">'+i.notas+'</div>':'')+'</div><span class="fi-price">'+fmt(i.precio*i.cantidad)+'</span></div>';
+    }).join('');
+    var card=document.createElement('div'); card.className='fact-card';
+    card.innerHTML='<div class="fact-head" onclick="toggleFact(this)"><span class="fact-num">#'+p.numero+'</span>'+tTag+'<span class="fact-cliente">'+cli+'</span><span class="fact-hora">'+hora+'</span><span class="fact-total">'+fmt(p.total)+'</span><span class="fact-estado '+estClass+'">'+estLabel+'</span></div><div class="fact-body"><div class="fact-items">'+itemsHTML+'</div><div class="fact-totals"><div class="ft-row"><span>Subtotal</span><span>'+fmt(p.subtotal)+'</span></div>'+(p.costoEnvio>0?'<div class="ft-row"><span>Domicilio ('+((p.cliente&&p.cliente.barrio)||'')+')</span><span>'+fmt(p.costoEnvio)+'</span></div>':'')+'<div class="ft-row big"><span>TOTAL</span><span>'+fmt(p.total)+'</span></div>'+(p.metodoPago?'<div class="ft-row ft-pago"><span>Pagado con</span><span>'+(mLabels[p.metodoPago]||p.metodoPago)+'</span></div>':'')+'</div></div>';
+    el.appendChild(card);
+  });
+}
+
+window.toggleFact=function(head){head.nextElementSibling.classList.toggle('open');};
+
+// Init
+goToday();
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+var app=initializeApp({apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"});
+var db=getFirestore(app);
+
+window._loadDay=function(dateStr){
+  var start=new Date(dateStr+'T00:00:00');
+  var end=new Date(dateStr+'T23:59:59');
+  var q=query(collection(db,'pedidos'),where('fecha','>=',start.toISOString()),where('fecha','<=',end.toISOString()),orderBy('fecha','asc'));
+  getDocs(q).then(function(snap){
+    todosData=[];
+    snap.forEach(function(d){todosData.push(Object.assign({_id:d.id},d.data()));});
+    renderStats(todosData);
+    renderFacturas();
+  }).catch(function(e){
+    // Try with fechaCreacion if fecha query fails
+    console.warn('fecha query failed, trying without orderBy:',e);
+    var q2=query(collection(db,'pedidos'),where('fecha','>=',start.toISOString()),where('fecha','<=',end.toISOString()));
+    getDocs(q2).then(function(snap){
+      todosData=[];
+      snap.forEach(function(d){todosData.push(Object.assign({_id:d.id},d.data()));});
+      todosData.sort(function(a,b){return(a.numero||0)-(b.numero||0);});
+      renderStats(todosData);
+      renderFacturas();
+    }).catch(function(e2){
+      document.getElementById('factList').innerHTML='<div class="empty">Error al cargar: '+e2.message+'</div>';
+    });
+  });
+};
+</script>
+</body>
+</html>
