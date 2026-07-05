@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Boca'o — Panel Admin</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#0a0a0a;color:#f0f0f0;font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;}
+header{background:#161616;border-bottom:3px solid #FFD700;padding:14px 24px;display:flex;align-items:center;gap:14px;}
+.logo{font-size:1rem;font-weight:900;color:#FFD700;text-transform:uppercase;letter-spacing:1px;}
+.welcome{font-size:0.8rem;color:#777;margin-left:auto;}
+.logout{padding:7px 16px;background:none;border:1px solid #333;border-radius:8px;color:#777;font-size:0.78rem;font-weight:700;cursor:pointer;transition:all .2s;}
+.logout:hover{border-color:#CC0000;color:#CC0000;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;padding:30px 24px;}
+.tile{background:#161616;border:2px solid #2a2a2a;border-radius:16px;padding:28px 24px;cursor:pointer;transition:all .2s;text-decoration:none;display:block;}
+.tile:hover{border-color:#FFD700;transform:translateY(-3px);}
+.tile-icon{font-size:2.5rem;margin-bottom:14px;}
+.tile-name{font-size:1.05rem;font-weight:900;color:#FFD700;text-transform:uppercase;margin-bottom:6px;letter-spacing:.5px;}
+.tile-desc{font-size:0.8rem;color:#777;line-height:1.5;}
+.tile.green:hover{border-color:#22c55e;}
+.tile.green .tile-name{color:#22c55e;}
+.tile.blue:hover{border-color:#3b82f6;}
+.tile.blue .tile-name{color:#3b82f6;}
+.tile.orange:hover{border-color:#f97316;}
+.tile.orange .tile-name{color:#f97316;}
+.fecha{text-align:right;padding:12px 24px 0;font-size:0.78rem;color:#444;}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">🍔 Boca'o Admin</div>
+  <div class="welcome" id="welcomeMsg"></div>
+  <button class="logout" onclick="logout()">Cerrar sesión</button>
+</header>
+<div class="fecha" id="fechaHoy"></div>
+<div class="grid">
+  <a class="tile" href="pos.html">
+    <div class="tile-icon">🖥️</div>
+    <div class="tile-name">Tomar Pedido</div>
+    <div class="tile-desc">Registrar nuevos pedidos, armar combos, enviar a cocina y cobrar.</div>
+  </a>
+  <a class="tile orange" href="cocina.html">
+    <div class="tile-icon">🍳</div>
+    <div class="tile-name">Pantalla Cocina</div>
+    <div class="tile-desc">Ver los pedidos en tiempo real y marcarlos como listos.</div>
+  </a>
+  <a class="tile green" href="ventas.html">
+    <div class="tile-icon">📊</div>
+    <div class="tile-name">Ventas del día</div>
+    <div class="tile-desc">Facturas, totales por día, desglose por método de pago.</div>
+  </a>
+  <a class="tile blue" href="ordenes.html">
+    <div class="tile-icon">📋</div>
+    <div class="tile-name">Historial de Órdenes</div>
+    <div class="tile-desc">Ver todos los pedidos del día con su estado actual.</div>
+  </a>
+</div>
+
+<script>
+var sess=JSON.parse(sessionStorage.getItem('bocao_sess')||'null');
+if(!sess||sess.role!=='admin'){window.location.href='/login.html';}
+else{
+  document.getElementById('welcomeMsg').textContent='Hola, '+sess.nombre+' 👋';
+  var d=new Date();
+  var dias=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  var meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  document.getElementById('fechaHoy').textContent=dias[d.getDay()]+', '+d.getDate()+' de '+meses[d.getMonth()]+' de '+d.getFullYear();
+}
+function logout(){sessionStorage.removeItem('bocao_sess');window.location.href='/login.html';}
+</script>
+</body>
+</html>
