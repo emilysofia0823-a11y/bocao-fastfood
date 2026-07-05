@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Boca'o — Domicilio</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#0a0a0a;--panel:#141414;--card:#1a1a1a;--border:#2a2a2a;--yellow:#FFD700;--green:#22c55e;--blue:#3b82f6;--text:#f0f0f0;--muted:#777;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px;}
+.logo{font-size:1.1rem;font-weight:900;color:var(--yellow);margin-bottom:4px;text-align:center;}
+.sub{font-size:0.8rem;color:var(--muted);margin-bottom:24px;text-align:center;}
+.box{background:var(--card);border:2px solid var(--border);border-radius:16px;width:100%;max-width:420px;overflow:hidden;}
+.box-head{background:#111;padding:16px 20px;border-bottom:2px solid var(--border);}
+.pedido-num{font-size:1.3rem;font-weight:900;color:var(--yellow);}
+.pedido-tipo{font-size:0.78rem;color:var(--muted);margin-top:2px;}
+.estado-badge{display:inline-block;padding:4px 12px;border-radius:50px;font-size:0.75rem;font-weight:700;margin-top:8px;}
+.badge-listo{background:#14532d;color:var(--green);}
+.badge-en_cocina,.badge-pendiente{background:#431407;color:#f97316;}
+.badge-entregado{background:#1e3a5f;color:var(--blue);}
+.badge-pagado{background:#1e3a5f;color:var(--blue);}
+.section{padding:16px 20px;border-bottom:1px solid var(--border);}
+.section:last-child{border-bottom:none;}
+.slabel{font-size:0.67rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+.info-row{font-size:0.88rem;margin-bottom:5px;display:flex;gap:8px;}
+.info-row .icon{width:18px;flex-shrink:0;}
+.item-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:0.85rem;}
+.item-row:last-child{border-bottom:none;}
+.item-left{}
+.item-name{font-weight:700;}
+.item-var{font-size:0.72rem;color:var(--muted);}
+.item-obs{font-size:0.71rem;color:#f97316;font-style:italic;margin-top:2px;}
+.item-qty{background:#CC0000;color:#fff;font-weight:900;border-radius:50px;padding:2px 9px;font-size:0.78rem;flex-shrink:0;}
+.total-row{display:flex;justify-content:space-between;font-size:0.85rem;color:var(--muted);margin-bottom:4px;}
+.total-row.big{font-size:1.1rem;font-weight:900;color:var(--text);margin-top:6px;padding-top:6px;border-top:1px solid var(--border);}
+.total-row.big span:last-child{color:var(--yellow);}
+.notas-box{background:#1a1200;border:1px solid #3a2a00;border-radius:8px;padding:9px 12px;font-size:0.8rem;color:#fbbf24;}
+.btn-entregar{width:100%;background:var(--green);color:#fff;border:none;padding:16px;border-radius:12px;font-size:1.1rem;font-weight:900;cursor:pointer;margin-top:20px;max-width:420px;transition:transform .15s;}
+.btn-entregar:hover{transform:scale(1.02);}
+.btn-entregar:disabled{background:#333;color:#555;cursor:not-allowed;transform:none;}
+.done-box{background:var(--card);border:2px solid var(--green);border-radius:16px;padding:32px 20px;text-align:center;width:100%;max-width:420px;}
+.done-icon{font-size:3rem;margin-bottom:10px;}
+.done-title{font-size:1.2rem;font-weight:900;color:var(--green);margin-bottom:6px;}
+.done-sub{font-size:0.85rem;color:var(--muted);}
+.loading{text-align:center;color:var(--muted);padding:60px 20px;}
+.loading-icon{font-size:2.5rem;margin-bottom:12px;animation:spin 1s linear infinite;display:inline-block;}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.error-box{background:var(--card);border:2px solid #CC0000;border-radius:16px;padding:32px 20px;text-align:center;width:100%;max-width:420px;color:#f87171;}
+</style>
+</head>
+<body>
+<div class="logo">🛵 Boca'o — Domicilio</div>
+<div class="sub">Información del pedido asignado</div>
+<div id="main"><div class="loading"><div class="loading-icon">⏳</div><div>Cargando pedido...</div></div></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+var app=initializeApp({apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"});
+var db=getFirestore(app);
+
+var params=new URLSearchParams(window.location.search);
+var pid=params.get('id');
+var main=document.getElementById('main');
+
+function fmt(n){return'$'+n.toLocaleString('es-CO');}
+function estadoLabel(e){var m={pendiente:'En espera',en_cocina:'En cocina 🍳',listo:'Listo para salir ✅',en_camino:'En camino 🛵',entregado:'Entregado ✅',pagado:'Pagado ✅'};return m[e]||e;}
+function estadoClass(e){if(e==='listo')return'badge-listo';if(e==='entregado'||e==='pagado')return'badge-entregado';return'badge-en_cocina';}
+
+if(!pid){
+  main.innerHTML='<div class="error-box">⚠️ No se especificó el pedido.<br/><small>Solicita el enlace correcto al cajero.</small></div>';
+}else{
+  getDoc(doc(db,'pedidos',pid)).then(function(snap){
+    if(!snap.exists()){main.innerHTML='<div class="error-box">❌ Pedido no encontrado.<br/><small>El enlace puede haber expirado.</small></div>';return;}
+    var p=snap.data(), id=snap.id;
+    render(p,id);
+  }).catch(function(e){main.innerHTML='<div class="error-box">⚠️ Error al cargar el pedido.<br/><small>'+e.message+'</small></div>';});
+}
+
+function render(p,id){
+  var f=fmt;
+  var ya=p.estado==='entregado'||p.estado==='pagado';
+  var itemsHTML=p.items.map(function(i){
+    return'<div class="item-row"><div class="item-left"><div class="item-name">'+i.nombre+(i.variante?' <span style="font-size:.72rem;color:var(--muted)">('+i.variante+')</span>':'')+'</div>'+(i.notas?'<div class="item-obs">📝 '+i.notas+'</div>':'')+' </div><div class="item-qty">x'+i.cantidad+'</div></div>';
+  }).join('');
+  var mLabels={efectivo:'💵 Efectivo',nequi:'📱 Nequi',transferencia:'🏦 Transferencia'};
+  var mpago=p.metodoPago?mLabels[p.metodoPago]||p.metodoPago:'Pendiente';
+  var cli=p.cliente||{};
+  var html='<div class="box"><div class="box-head"><div class="pedido-num">Pedido #'+p.numero+'</div><div class="pedido-tipo">🛵 Domicilio</div><span class="estado-badge '+estadoClass(p.estado)+'">'+estadoLabel(p.estado)+'</span></div>';
+  html+='<div class="section"><div class="slabel">Cliente</div>';
+  if(cli.nombre)html+='<div class="info-row"><span class="icon">👤</span><span>'+cli.nombre+'</span></div>';
+  if(cli.telefono)html+='<div class="info-row"><span class="icon">📞</span><a href="tel:'+cli.telefono+'" style="color:var(--blue)">'+cli.telefono+'</a></div>';
+  if(cli.direccion)html+='<div class="info-row"><span class="icon">📍</span><span>'+cli.direccion+'</span></div>';
+  if(cli.barrio)html+='<div class="info-row"><span class="icon">🏘️</span><span>'+cli.barrio+'</span></div>';
+  if(cli.telefono)html+='<div class="info-row"><span class="icon">🗺️</span><a href="https://wa.me/57'+cli.telefono.replace(/\D/g,'')+'" target="_blank" style="color:#25D366;font-weight:700">WhatsApp cliente</a></div>';
+  html+='</div>';
+  html+='<div class="section"><div class="slabel">Productos</div>'+itemsHTML+'</div>';
+  html+='<div class="section"><div class="total-row"><span>Subtotal</span><span>'+f(p.subtotal)+'</span></div>';
+  if(p.costoEnvio>0)html+='<div class="total-row"><span>Domicilio</span><span>'+f(p.costoEnvio)+'</span></div>';
+  html+='<div class="total-row big"><span>TOTAL</span><span>'+f(p.total)+'</span></div>';
+  html+='<div class="total-row" style="margin-top:8px;"><span>Método de pago</span><span style="font-weight:700">'+mpago+'</span></div>';
+  html+='</div>';
+  if(p.notasGenerales)html+='<div class="section"><div class="notas-box">📝 '+p.notasGenerales+'</div></div>';
+  html+='</div>';
+  if(!ya)html+='<button class="btn-entregar" id="btnEntregar" onclick="marcarEntregado(\''+id+'\')">✅ Marcar como ENTREGADO</button>';
+  else html+='<div class="done-box"><div class="done-icon">🎉</div><div class="done-title">¡Entregado!</div><div class="done-sub">El pedido fue marcado como entregado.</div></div>';
+  main.innerHTML=html;
+  window.marcarEntregado=function(docId){
+    var btn=document.getElementById('btnEntregar');
+    if(btn){btn.disabled=true;btn.textContent='Guardando...';}
+    updateDoc(doc(db,'pedidos',docId),{estado:'entregado'}).then(function(){
+      main.innerHTML='<div class="done-box"><div class="done-icon">🎉</div><div class="done-title">¡Entregado!</div><div class="done-sub">El pedido #'+p.numero+' fue marcado como entregado. ¡Gracias!</div></div>';
+    }).catch(function(e){if(btn){btn.disabled=false;btn.textContent='✅ Marcar como ENTREGADO';}alert('Error: '+e.message);});
+  };
+}
+</script>
+</body>
+</html>
