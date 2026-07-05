@@ -594,9 +594,11 @@ function confirmarPago(){
     if(m<pedidoActual.total){toast('⚠️ El monto es menor al total');return;}
   }
   pedidoActual.metodoPago=metodoPagoSel;
-  pedidoActual.estado='pagado';
+  // Domicilio: queda 'listo' para que el domiciliario lo reciba; Recoger: pasa a 'pagado'
+  var nuevoEstado=pedidoActual.tipo==='domicilio'?'listo':'pagado';
+  pedidoActual.estado=nuevoEstado;
   if(window._db&&pedidoActual.firestoreId){
-    window._updateDoc(window._doc(window._db,'pedidos',pedidoActual.firestoreId),{estado:'pagado',metodoPago:metodoPagoSel}).catch(function(e){console.warn(e);});
+    window._updateDoc(window._doc(window._db,'pedidos',pedidoActual.firestoreId),{estado:nuevoEstado,metodoPago:metodoPagoSel}).catch(function(e){console.warn(e);});
   }
   document.getElementById('pagoOverlay').classList.remove('open');
   mostrarFactura(pedidoActual);
@@ -643,7 +645,7 @@ function toast(msg){var el=document.getElementById('toast');el.textContent=msg;e
 var ordenesActivas=[];
 
 function actualizarBadge(){
-  var pendientes=ordenesActivas.filter(function(p){return p.estado!=='pagado'&&p.estado!=='entregado';}).length;
+  var pendientes=ordenesActivas.filter(function(p){return p.estado!=='pagado'&&p.estado!=='entregado'&&!p.metodoPago;}).length;
   var badge=document.getElementById('cobrarBadge');
   badge.style.display=pendientes>0?'inline-block':'none';
   badge.textContent=pendientes;
@@ -655,7 +657,7 @@ function abrirCobrarPanel(){
 }
 
 function renderCobrarList(){
-  var lista=ordenesActivas.filter(function(p){return p.estado!=='pagado'&&p.estado!=='entregado';});
+  var lista=ordenesActivas.filter(function(p){return p.estado!=='pagado'&&p.estado!=='entregado'&&!p.metodoPago;});
   var el=document.getElementById('cobrarList');
   if(lista.length===0){el.innerHTML='<div class="cobrar-empty">Sin pedidos pendientes de cobro.</div>';return;}
   el.innerHTML='';
