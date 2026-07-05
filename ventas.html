@@ -213,33 +213,28 @@ goToday();
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 var app=initializeApp({apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"});
 var db=getFirestore(app);
 
 window._loadDay=function(dateStr){
-  var start=new Date(dateStr+'T00:00:00');
-  var end=new Date(dateStr+'T23:59:59');
-  var q=query(collection(db,'pedidos'),where('fecha','>=',start.toISOString()),where('fecha','<=',end.toISOString()),orderBy('fecha','asc'));
-  getDocs(q).then(function(snap){
+  document.getElementById('factList').innerHTML='<div class="loading">Cargando...</div>';
+  var start=new Date(dateStr+'T00:00:00').toISOString();
+  var end=new Date(dateStr+'T23:59:59').toISOString();
+  // Traer todos y filtrar en JS — sin índice compuesto
+  getDocs(collection(db,'pedidos')).then(function(snap){
     todosData=[];
-    snap.forEach(function(d){todosData.push(Object.assign({_id:d.id},d.data()));});
+    snap.forEach(function(d){
+      var p=d.data();
+      if(p.fecha && p.fecha>=start && p.fecha<=end)
+        todosData.push(Object.assign({_id:d.id},p));
+    });
+    todosData.sort(function(a,b){return(a.numero||0)-(b.numero||0);});
     renderStats(todosData);
     renderFacturas();
   }).catch(function(e){
-    // Try with fechaCreacion if fecha query fails
-    console.warn('fecha query failed, trying without orderBy:',e);
-    var q2=query(collection(db,'pedidos'),where('fecha','>=',start.toISOString()),where('fecha','<=',end.toISOString()));
-    getDocs(q2).then(function(snap){
-      todosData=[];
-      snap.forEach(function(d){todosData.push(Object.assign({_id:d.id},d.data()));});
-      todosData.sort(function(a,b){return(a.numero||0)-(b.numero||0);});
-      renderStats(todosData);
-      renderFacturas();
-    }).catch(function(e2){
-      document.getElementById('factList').innerHTML='<div class="empty">Error al cargar: '+e2.message+'</div>';
-    });
+    document.getElementById('factList').innerHTML='<div class="empty">Error al cargar: '+e.message+'</div>';
   });
 };
 </script>
