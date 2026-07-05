@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Boca'o — Cocina</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#0a0a0a;--panel:#141414;--card:#1a1a1a;--border:#2a2a2a;--yellow:#FFD700;--red:#CC0000;--green:#22c55e;--blue:#3b82f6;--orange:#f97316;--text:#f0f0f0;--muted:#777;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;}
+header{background:var(--panel);border-bottom:3px solid var(--orange);padding:12px 20px;display:flex;align-items:center;gap:12px;}
+.logo{font-size:1.1rem;font-weight:900;color:var(--orange);text-transform:uppercase;letter-spacing:1px;}
+.status-dot{width:10px;height:10px;border-radius:50%;background:#555;margin-left:auto;}
+.status-dot.on{background:var(--green);box-shadow:0 0 8px var(--green);}
+.status-txt{font-size:0.78rem;color:var(--muted);}
+.filter-bar{display:flex;gap:8px;padding:14px 20px;background:var(--panel);border-bottom:1px solid var(--border);}
+.flt{padding:7px 18px;border-radius:50px;border:2px solid var(--border);background:var(--card);color:var(--muted);font-weight:700;cursor:pointer;font-size:0.8rem;transition:all .2s;}
+.flt.active{background:var(--orange);border-color:var(--orange);color:#fff;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;padding:20px;}
+.card{background:var(--card);border:2px solid var(--border);border-radius:14px;overflow:hidden;transition:border-color .2s;}
+.card.pendiente,.card.en_cocina{border-color:var(--orange);}
+.card.listo{border-color:var(--green);}
+.card-head{padding:12px 16px;display:flex;align-items:center;gap:10px;}
+.num-badge{background:var(--orange);color:#000;font-weight:900;font-size:1rem;padding:4px 12px;border-radius:50px;}
+.card.listo .num-badge{background:var(--green);}
+.tipo-tag{font-size:0.75rem;font-weight:700;padding:4px 10px;border-radius:50px;}
+.tipo-dom{background:#1e3a5f;color:#60a5fa;}
+.tipo-rec{background:#1a2e1a;color:#86efac;}
+.card-time{margin-left:auto;font-size:0.72rem;color:var(--muted);}
+.card-body{padding:0 16px 14px;}
+.cliente-info{font-size:0.78rem;color:var(--muted);margin-bottom:10px;line-height:1.6;}
+.cliente-info strong{color:var(--text);}
+.items-list{}
+.item-row{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:0.83rem;}
+.item-row:last-child{border-bottom:none;}
+.item-name{font-weight:700;}
+.item-var{color:var(--muted);font-size:0.72rem;}
+.item-qty{background:var(--red);color:#fff;font-weight:900;border-radius:50px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:0.78rem;flex-shrink:0;}
+.item-obs{font-size:0.7rem;color:#f97316;padding-left:8px;font-style:italic;padding-bottom:3px;}
+.card-notas{background:#1a1200;border:1px solid #3a2a00;border-radius:8px;padding:7px 10px;font-size:0.75rem;color:#fbbf24;margin-top:8px;}
+.card-footer{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;}
+.btn-listo{flex:1;background:var(--green);color:#fff;border:none;padding:11px;border-radius:10px;font-weight:800;cursor:pointer;font-size:0.9rem;transition:transform .15s;}
+.btn-listo:hover{transform:scale(1.03);}
+.btn-ya{flex:1;background:var(--border);color:var(--muted);border:none;padding:11px;border-radius:10px;font-weight:700;font-size:0.85rem;cursor:default;}
+.empty{text-align:center;padding:60px 20px;color:var(--muted);grid-column:1/-1;}
+.empty-icon{font-size:3rem;margin-bottom:12px;}
+.count-badge{background:var(--orange);color:#000;font-size:0.72rem;font-weight:900;border-radius:50px;padding:2px 8px;margin-left:6px;}
+.sound-btn{padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:0.75rem;cursor:pointer;}
+.sound-btn.on{border-color:var(--green);color:var(--green);}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">🍳 Cocina — Boca'o</div>
+  <button class="sound-btn" id="soundBtn" onclick="toggleSound()">🔕 Sonido</button>
+  <div style="margin-left:8px;display:flex;align-items:center;gap:6px;">
+    <div class="status-dot" id="statusDot"></div>
+    <span class="status-txt" id="statusTxt">Conectando...</span>
+  </div>
+</header>
+<div class="filter-bar">
+  <button class="flt active" id="fAll" onclick="setFilter('all')">Todos <span class="count-badge" id="cAll">0</span></button>
+  <button class="flt" id="fCocina" onclick="setFilter('en_cocina')">🔥 En cocina <span class="count-badge" id="cCocina">0</span></button>
+  <button class="flt" id="fListo" onclick="setFilter('listo')">✅ Listos <span class="count-badge" id="cListo">0</span></button>
+</div>
+<div class="grid" id="grid"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, query, where, orderBy, onSnapshot, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+var app=initializeApp({apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"});
+var db=getFirestore(app);
+
+var todos=[], filtro='all', soundOn=false, prevIds=new Set();
+
+window.setFilter=function(f){
+  filtro=f;
+  ['All','Cocina','Listo'].forEach(function(k){document.getElementById('f'+k).classList.remove('active');});
+  var map={all:'All',en_cocina:'Cocina',listo:'Listo'};
+  document.getElementById('f'+map[f]).classList.add('active');
+  render();
+};
+
+window.toggleSound=function(){
+  soundOn=!soundOn;
+  var btn=document.getElementById('soundBtn');
+  btn.textContent=soundOn?'🔔 Sonido':'🔕 Sonido';
+  btn.classList.toggle('on',soundOn);
+};
+
+function beep(){
+  if(!soundOn)return;
+  try{var ctx=new AudioContext();var o=ctx.createOscillator();var g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=880;g.gain.setValueAtTime(0.3,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.4);o.start();o.stop(ctx.currentTime+0.4);}catch(e){}
+}
+
+function tiempoLabel(fecha){
+  if(!fecha)return'';
+  var d=new Date(fecha), now=new Date(), diff=Math.floor((now-d)/60000);
+  if(diff<1)return'Ahora';if(diff===1)return'1 min';if(diff<60)return diff+' min';
+  return Math.floor(diff/60)+'h '+( diff%60)+'m';
+}
+
+function render(){
+  var g=document.getElementById('grid'); g.innerHTML='';
+  var shown=filtro==='all'?todos:todos.filter(function(p){return p.estado===filtro||(filtro==='en_cocina'&&p.estado==='pendiente');});
+  // counts
+  var nc=todos.filter(function(p){return p.estado==='en_cocina'||p.estado==='pendiente';}).length;
+  var nl=todos.filter(function(p){return p.estado==='listo';}).length;
+  document.getElementById('cAll').textContent=todos.length;
+  document.getElementById('cCocina').textContent=nc;
+  document.getElementById('cListo').textContent=nl;
+  if(shown.length===0){g.innerHTML='<div class="empty"><div class="empty-icon">🍳</div><div>No hay pedidos '+filtro==='all'?'':'con este estado'+'</div></div>';return;}
+  shown.forEach(function(p){
+    var listo=p.estado==='listo';
+    var tl=p.tipo==='domicilio'?'🛵 Domicilio':'🏃 Recoger';
+    var tc=p.tipo==='domicilio'?'tipo-dom':'tipo-rec';
+    var card=document.createElement('div'); card.className='card '+(listo?'listo':'en_cocina');
+    var itemsHTML=p.items.map(function(i){
+      return'<div class="item-row"><div><span class="item-name">'+i.nombre+(i.variante?' <span class="item-var">('+i.variante+')</span>':'')+'</span></div><div class="item-qty">'+i.cantidad+'</div></div>'+(i.notas?'<div class="item-obs">📝 '+i.notas+'</div>':'');
+    }).join('');
+    var cli='';
+    if(p.cliente&&p.cliente.nombre)cli+='<strong>'+p.cliente.nombre+'</strong><br/>';
+    if(p.tipo==='domicilio'){
+      if(p.cliente&&p.cliente.direccion)cli+=p.cliente.direccion+'<br/>';
+      if(p.cliente&&p.cliente.barrio)cli+='Barrio: '+p.cliente.barrio+'<br/>';
+    }
+    var notasHTML=p.notasGenerales?'<div class="card-notas">📝 '+p.notasGenerales+'</div>':'';
+    var btn=listo?'<button class="btn-ya">✅ Listo</button>':'<button class="btn-listo" onclick="marcarListo(\''+p._id+'\')">✅ Marcar listo</button>';
+    card.innerHTML='<div class="card-head"><span class="num-badge">#'+p.numero+'</span><span class="tipo-tag '+tc+'">'+tl+'</span><span class="card-time" id="t'+p._id+'">'+tiempoLabel(p.fecha)+'</span></div><div class="card-body"><div class="cliente-info">'+cli+'</div><div class="items-list">'+itemsHTML+'</div>'+notasHTML+'</div><div class="card-footer">'+btn+'</div>';
+    g.appendChild(card);
+  });
+}
+
+window.marcarListo=function(id){
+  updateDoc(doc(db,'pedidos',id),{estado:'listo'}).catch(function(e){console.warn(e);});
+};
+
+// Update times every 30s
+setInterval(function(){
+  todos.forEach(function(p){var el=document.getElementById('t'+p._id);if(el)el.textContent=tiempoLabel(p.fecha);});
+},30000);
+
+// Listen to active orders (last 24h)
+var q=query(collection(db,'pedidos'),where('estado','in',['pendiente','en_cocina','listo']),orderBy('fechaCreacion','asc'));
+var dot=document.getElementById('statusDot'),txt=document.getElementById('statusTxt');
+onSnapshot(q,function(snap){
+  dot.classList.add('on'); txt.textContent='En vivo';
+  var newIds=new Set();
+  snap.forEach(function(d){newIds.add(d.id);});
+  // detect new
+  var isNew=false;
+  newIds.forEach(function(id){if(!prevIds.has(id))isNew=true;});
+  prevIds=newIds;
+  todos=[];
+  snap.forEach(function(d){todos.push(Object.assign({_id:d.id},d.data()));});
+  todos.sort(function(a,b){return(a.numero||0)-(b.numero||0);});
+  if(isNew&&prevIds.size>0)beep();
+  render();
+},function(err){dot.classList.remove('on');txt.textContent='Sin conexión';console.warn(err);});
+</script>
+</body>
+</html>
