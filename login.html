@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Boca'o — Acceso</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#0a0a0a;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:'Segoe UI',Arial,sans-serif;}
+.card{background:#161616;border:2px solid #2a2a2a;border-radius:18px;padding:36px 32px;width:100%;max-width:360px;}
+.logo{text-align:center;margin-bottom:28px;}
+.logo-icon{font-size:2.8rem;}
+.logo-name{font-size:1.4rem;font-weight:900;color:#FFD700;text-transform:uppercase;letter-spacing:2px;margin-top:6px;}
+.logo-sub{font-size:0.75rem;color:#555;margin-top:2px;letter-spacing:1px;text-transform:uppercase;}
+.field{margin-bottom:14px;}
+.field label{font-size:0.7rem;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;}
+.field input{width:100%;background:#1e1e1e;border:2px solid #2a2a2a;color:#f0f0f0;padding:12px 14px;border-radius:10px;font-size:0.95rem;outline:none;font-family:inherit;transition:border-color .2s;}
+.field input:focus{border-color:#FFD700;}
+.btn{width:100%;background:#FFD700;color:#000;border:none;padding:14px;border-radius:10px;font-size:1rem;font-weight:900;cursor:pointer;margin-top:6px;letter-spacing:.5px;transition:transform .15s;}
+.btn:hover{transform:scale(1.02);}
+.error{background:#2d0a0a;border:1px solid #CC0000;color:#f87171;border-radius:8px;padding:9px 14px;font-size:0.8rem;margin-top:12px;display:none;text-align:center;}
+.error.show{display:block;}
+.version{text-align:center;margin-top:20px;font-size:0.68rem;color:#333;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">🍔</div>
+    <div class="logo-name">Boca'o</div>
+    <div class="logo-sub">Panel de administración</div>
+  </div>
+  <div class="field">
+    <label>Usuario</label>
+    <input type="text" id="uInput" placeholder="Ingresa tu usuario" autocomplete="username"/>
+  </div>
+  <div class="field">
+    <label>Contraseña</label>
+    <input type="password" id="pInput" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()"/>
+  </div>
+  <button class="btn" onclick="login()">Entrar →</button>
+  <div class="error" id="errBox">Usuario o contraseña incorrectos</div>
+  <div class="version">Boca'o POS v2.0</div>
+</div>
+
+<script>
+// CREDENCIALES — cambiar aquí si necesitas modificar claves
+var USERS = {
+  'admin':  { pass: 'bocao2025', role: 'admin',  nombre: 'Administrador', redirect: '/panel.html' },
+  'kelly':  { pass: 'kelly2025', role: 'admin',  nombre: 'Kelly',         redirect: '/panel.html' },
+  'cocina': { pass: 'cocina123', role: 'cocina', nombre: 'Cocina',        redirect: '/cocina.html' }
+};
+
+function login(){
+  var u=document.getElementById('uInput').value.trim().toLowerCase();
+  var p=document.getElementById('pInput').value;
+  var err=document.getElementById('errBox');
+  if(!u||!p){err.textContent='Ingresa usuario y contraseña.';err.classList.add('show');return;}
+  var user=USERS[u];
+  if(!user||user.pass!==p){err.classList.add('show');err.textContent='Usuario o contraseña incorrectos';return;}
+  sessionStorage.setItem('bocao_sess',JSON.stringify({user:u,role:user.role,nombre:user.nombre}));
+  window.location.href=user.redirect;
+}
+
+// Si ya está logueado, redirigir
+var sess=JSON.parse(sessionStorage.getItem('bocao_sess')||'null');
+if(sess){
+  var dest=sess.role==='cocina'?'/cocina.html':'/panel.html';
+  window.location.href=dest;
+}
+</script>
+</body>
+</html>
