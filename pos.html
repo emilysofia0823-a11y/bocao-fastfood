@@ -235,26 +235,7 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",
-  authDomain: "e703-18361.firebaseapp.com",
-  projectId: "e703-18361",
-  storageBucket: "e703-18361.firebasestorage.app",
-  messagingSenderId: "670782708176",
-  appId: "1:670782708176:web:db6470aa8e73da59a201d5"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-window._db = db;
-window._addDoc = addDoc;
-window._collection = collection;
-window._serverTimestamp = serverTimestamp;
-
+<script>
 // ── MENÚ ──
 const menu = {
   hamburguesas: {
@@ -578,6 +559,29 @@ window.showToast = (msg) => {
 renderCats();
 renderItems();
 document.getElementById('clientSection').classList.add('show');
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+try {
+  const app = initializeApp({
+    apiKey: "AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",
+    authDomain: "e703-18361.firebaseapp.com",
+    projectId: "e703-18361",
+    storageBucket: "e703-18361.firebasestorage.app",
+    messagingSenderId: "670782708176",
+    appId: "1:670782708176:web:db6470aa8e73da59a201d5"
+  });
+  const db = getFirestore(app);
+  window._db = db;
+  window._addDoc = addDoc;
+  window._collection = collection;
+  window._serverTimestamp = serverTimestamp;
+  console.log('Firebase conectado ✅');
+} catch(e) {
+  console.warn('Firebase no disponible:', e);
+}
 </script>
 </body>
 </html>
