@@ -141,8 +141,9 @@ setInterval(function(){
   todos.forEach(function(p){var el=document.getElementById('t'+p._id);if(el)el.textContent=tiempoLabel(p.fecha);});
 },30000);
 
-// Listen to active orders (last 24h)
-var q=query(collection(db,'pedidos'),where('estado','in',['pendiente','en_cocina','listo']),orderBy('fechaCreacion','asc'));
+// Listen: query by fecha only (no composite index needed), filter estado in JS
+var hoy=new Date(); hoy.setHours(0,0,0,0);
+var q=query(collection(db,'pedidos'),where('fecha','>=',hoy.toISOString()));
 var dot=document.getElementById('statusDot'),txt=document.getElementById('statusTxt');
 onSnapshot(q,function(snap){
   dot.classList.add('on'); txt.textContent='En vivo';
@@ -153,7 +154,11 @@ onSnapshot(q,function(snap){
   newIds.forEach(function(id){if(!prevIds.has(id))isNew=true;});
   prevIds=newIds;
   todos=[];
-  snap.forEach(function(d){todos.push(Object.assign({_id:d.id},d.data()));});
+  snap.forEach(function(d){
+    var p=d.data();
+    if(p.estado==='pagado'||p.estado==='entregado')return; // solo activos
+    todos.push(Object.assign({_id:d.id},p));
+  });
   todos.sort(function(a,b){return(a.numero||0)-(b.numero||0);});
   if(isNew&&prevIds.size>0)beep();
   render();
