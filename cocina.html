@@ -173,13 +173,12 @@ function render(){
   });
 }
 
-// Escuchar pedidos de hoy
-var hoy=new Date(); hoy.setHours(0,0,0,0);
-var q=query(collection(db,'pedidos'),where('fecha','>=',hoy.toISOString()));
+// Escuchar TODOS los pedidos sin filtro (filtramos en JS)
 var dot=document.getElementById('dot'), connTxt=document.getElementById('connTxt');
+var hoy=new Date(); hoy.setHours(0,0,0,0);
 
-onSnapshot(q, function(snap){
-  dot.classList.add('on'); connTxt.textContent='En vivo ✓';
+onSnapshot(collection(db,'pedidos'), function(snap){
+  dot.classList.add('on'); connTxt.textContent='En vivo ✓ ('+snap.size+' total)';
   var newIds=new Set();
   snap.forEach(function(d){newIds.add(d.id);});
   var isNew=false;
@@ -189,7 +188,9 @@ onSnapshot(q, function(snap){
   todos=[];
   snap.forEach(function(d){
     var p=d.data();
+    // solo activos de hoy
     if(p.estado==='pagado'||p.estado==='entregado') return;
+    if(p.fecha && new Date(p.fecha)<hoy) return;
     todos.push(Object.assign({_id:d.id},p));
   });
   todos.sort(function(a,b){return(a.numero||0)-(b.numero||0);});
@@ -197,9 +198,9 @@ onSnapshot(q, function(snap){
   render();
 }, function(err){
   dot.classList.remove('on');
-  connTxt.textContent='Error de conexión';
-  document.getElementById('grid').innerHTML='<div class="error-box">❌ Error al conectar con Firebase:<br/><strong>'+err.message+'</strong><br/><br/>Verifica las reglas de Firestore en la consola de Firebase.</div>';
-  console.error('Firestore error:', err);
+  connTxt.textContent='Error';
+  document.getElementById('grid').innerHTML='<div class="error-box">❌ Error Firebase: <strong>'+err.message+'</strong></div>';
+  console.error(err);
 });
 
 // Actualizar tiempos cada minuto
