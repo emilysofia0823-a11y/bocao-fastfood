@@ -153,6 +153,27 @@ header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:8px
 .btn-wa-dom{background:#25D366;color:#fff;}
 .btn-nuevo{background:#eee;color:#000;}
 
+/* COBRAR PANEL */
+.cobrar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:600;align-items:flex-start;justify-content:center;padding:60px 20px 20px;}
+.cobrar-overlay.open{display:flex;}
+.cobrar-box{background:var(--card);border:2px solid var(--green);border-radius:16px;width:100%;max-width:480px;max-height:80vh;display:flex;flex-direction:column;}
+.cobrar-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.cobrar-head h3{color:var(--green);font-size:1rem;font-weight:900;}
+.cobrar-close{background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;}
+.cobrar-list{overflow-y:auto;padding:12px;}
+.cobrar-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:border-color .2s;}
+.cobrar-card:hover{border-color:var(--green);}
+.cobrar-card-top{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.cobrar-num{background:var(--red);color:#fff;font-weight:900;font-size:0.78rem;padding:3px 10px;border-radius:50px;}
+.cobrar-num.listo{background:var(--green);color:#000;}
+.cobrar-cli{font-weight:700;font-size:0.85rem;flex:1;}
+.cobrar-total{color:var(--yellow);font-weight:900;font-size:0.95rem;}
+.cobrar-items-sm{font-size:0.75rem;color:var(--muted);line-height:1.5;}
+.cobrar-estado{font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:50px;}
+.ce-cocina{background:#431407;color:#f97316;}
+.ce-listo{background:#14532d;color:var(--green);}
+.cobrar-empty{text-align:center;padding:30px;color:var(--muted);font-size:0.85rem;}
+
 /* TOAST */
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:#222;color:var(--text);padding:9px 22px;border-radius:50px;font-weight:700;font-size:0.82rem;border:1px solid #444;transition:transform .3s;z-index:999;pointer-events:none;white-space:nowrap;}
 .toast.on{transform:translateX(-50%) translateY(0);}
@@ -167,6 +188,7 @@ header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:8px
     <button class="tipo-btn" id="btnRec" onclick="setTipo('recoger')">🏃 Recoger</button>
   </div>
   <div class="header-links">
+    <button class="hlink" onclick="abrirCobrarPanel()" id="cobrarHeaderBtn" style="position:relative;">💰 Cobrar <span id="cobrarBadge" style="display:none;background:#22c55e;color:#000;font-size:0.65rem;font-weight:900;border-radius:50%;width:16px;height:16px;line-height:16px;text-align:center;position:absolute;top:-4px;right:-4px;"></span></button>
     <a class="hlink" href="cocina.html" target="_blank">🍳 Cocina</a>
     <a class="hlink" href="ordenes.html" target="_blank">📋 Órdenes</a>
   </div>
@@ -266,8 +288,7 @@ header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:8px
     <div id="comContent"></div>
     <div class="com-actions">
       <button class="btn-print-com" onclick="imprimirComanda()">🖨️ Imprimir</button>
-      <button class="btn-cobrar" onclick="abrirPago()">💰 Cobrar</button>
-      <button class="btn-next" onclick="nuevoPedido()">Nuevo</button>
+      <button class="btn-next" onclick="nuevoPedido()">✅ Nuevo pedido</button>
     </div>
   </div>
 </div>
@@ -305,6 +326,17 @@ header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:8px
   <div class="fact-box">
     <div id="factContent"></div>
     <div class="fact-actions" id="factActions"></div>
+  </div>
+</div>
+
+<!-- PANEL COBRAR -->
+<div class="cobrar-overlay" id="cobrarOverlay">
+  <div class="cobrar-box">
+    <div class="cobrar-head">
+      <h3>💰 Selecciona pedido a cobrar</h3>
+      <button class="cobrar-close" onclick="document.getElementById('cobrarOverlay').classList.remove('open')">✕</button>
+    </div>
+    <div class="cobrar-list" id="cobrarList"><div class="cobrar-empty">Sin pedidos pendientes de cobro.</div></div>
   </div>
 </div>
 
@@ -624,6 +656,41 @@ function mostrarFactura(p){
 
 function toast(msg){var el=document.getElementById('toast');el.textContent=msg;el.classList.add('on');clearTimeout(window._tt);window._tt=setTimeout(function(){el.classList.remove('on');},2500);}
 
+// ── PANEL COBRAR ──
+var ordenesActivas=[];
+
+function actualizarBadge(){
+  var pendientes=ordenesActivas.filter(function(p){return p.estado!=='pagado'&&p.estado!=='entregado';}).length;
+  var badge=document.getElementById('cobrarBadge');
+  badge.style.display=pendientes>0?'inline-block':'none';
+  badge.textContent=pendientes;
+}
+
+function abrirCobrarPanel(){
+  renderCobrarList();
+  document.getElementById('cobrarOverlay').classList.add('open');
+}
+
+function renderCobrarList(){
+  var lista=ordenesActivas.filter(function(p){return p.estado!=='pagado'&&p.estado!=='entregado';});
+  var el=document.getElementById('cobrarList');
+  if(lista.length===0){el.innerHTML='<div class="cobrar-empty">Sin pedidos pendientes de cobro.</div>';return;}
+  el.innerHTML='';
+  lista.forEach(function(p){
+    var esListo=p.estado==='listo';
+    var cli=p.cliente&&p.cliente.nombre?p.cliente.nombre:'Sin nombre';
+    var prods=(p.items||[]).map(function(i){return i.cantidad+'× '+i.nombre;}).join(', ');
+    var card=document.createElement('div'); card.className='cobrar-card';
+    card.innerHTML='<div class="cobrar-card-top"><span class="cobrar-num'+(esListo?' listo':'')+'">'+( esListo?'✅':'🍳')+' #'+p.numero+'</span><span class="cobrar-cli">'+cli+'</span><span class="cobrar-total">$'+p.total.toLocaleString('es-CO')+'</span></div><div class="cobrar-items-sm">'+prods+(p.tipo==='domicilio'?' · 🛵 '+p.cliente.barrio:'')+'</div>';
+    card.onclick=function(){
+      document.getElementById('cobrarOverlay').classList.remove('open');
+      pedidoActual=p;
+      abrirPago();
+    };
+    el.appendChild(card);
+  });
+}
+
 // INIT
 renderCats();
 renderGrid(MENU[activeCat].items);
@@ -632,12 +699,25 @@ document.getElementById('pedidoNumVal').textContent=pedidoNum+1;
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, serverTimestamp, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 try {
   var app=initializeApp({apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"});
   var db=getFirestore(app);
   window._db=db; window._addDoc=addDoc; window._collection=collection;
   window._doc=doc; window._updateDoc=updateDoc; window._serverTimestamp=serverTimestamp;
+  // Escuchar órdenes activas de hoy para el panel de cobro
+  var hoy=new Date(); hoy.setHours(0,0,0,0);
+  var q=query(collection(db,'pedidos'),where('fecha','>=',hoy.toISOString()));
+  onSnapshot(q,function(snap){
+    ordenesActivas=[];
+    snap.forEach(function(d){
+      var p=d.data();
+      if(p.estado!=='pagado'&&p.estado!=='entregado')
+        ordenesActivas.push(Object.assign({_id:d.id,firestoreId:d.id},p));
+    });
+    ordenesActivas.sort(function(a,b){return(a.numero||0)-(b.numero||0);});
+    actualizarBadge();
+  });
 } catch(e){console.warn('Firebase:',e);}
 </script>
 </body>
