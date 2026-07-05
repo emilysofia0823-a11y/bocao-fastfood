@@ -106,23 +106,17 @@ function render(){
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 var app=initializeApp({apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"});
 var db=getFirestore(app);
+window._db=db; window._doc=doc; window._updateDoc=updateDoc;
 var hoy=new Date();hoy.setHours(0,0,0,0);
-var q=query(collection(db,'pedidos'),where('fecha','>=',hoy.toISOString()),orderBy('fecha','asc'));
+var q=query(collection(db,'pedidos'),where('fecha','>=',hoy.toISOString()));
 onSnapshot(q,function(snap){
   todos=[];
   snap.forEach(function(d){todos.push(Object.assign({_id:d.id},d.data()));});
   todos.sort(function(a,b){return(a.numero||0)-(b.numero||0);});
   render();
-},function(e){
-  // fallback without orderBy
-  var q2=query(collection(db,'pedidos'),where('fecha','>=',hoy.toISOString()));
-  onSnapshot(q2,function(snap){
-    todos=[];snap.forEach(function(d){todos.push(Object.assign({_id:d.id},d.data()));});
-    todos.sort(function(a,b){return(a.numero||0)-(b.numero||0);});render();
-  });
 });
 </script>
 </body>
