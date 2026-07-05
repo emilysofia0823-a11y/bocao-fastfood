@@ -690,15 +690,16 @@ try {
   var db=getFirestore(app);
   window._db=db; window._addDoc=addDoc; window._collection=collection;
   window._doc=doc; window._updateDoc=updateDoc; window._serverTimestamp=serverTimestamp;
-  // Escuchar órdenes activas de hoy para el panel de cobro
+  // Escuchar TODOS los pedidos, filtrar en JS (no usar where+orderBy = requiere índice compuesto)
   var hoy=new Date(); hoy.setHours(0,0,0,0);
-  var q=query(collection(db,'pedidos'),where('fecha','>=',hoy.toISOString()));
-  onSnapshot(q,function(snap){
+  onSnapshot(collection(db,'pedidos'),function(snap){
     ordenesActivas=[];
     snap.forEach(function(d){
       var p=d.data();
-      if(p.estado!=='pagado'&&p.estado!=='entregado')
-        ordenesActivas.push(Object.assign({_id:d.id,firestoreId:d.id},p));
+      if(p.estado==='pagado'||p.estado==='entregado') return;
+      if(p.metodoPago) return;
+      if(p.fecha && new Date(p.fecha)<hoy) return;
+      ordenesActivas.push(Object.assign({_id:d.id,firestoreId:d.id},p));
     });
     ordenesActivas.sort(function(a,b){return(a.numero||0)-(b.numero||0);});
     actualizarBadge();
