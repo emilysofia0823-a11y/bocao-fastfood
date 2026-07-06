@@ -41,9 +41,13 @@ header{background:#0d0d0d;border-bottom:3px solid #f97316;padding:10px 18px;disp
 .com-fin{text-align:center;font-size:0.68rem;color:#aaa;border-top:1px dashed #ccc;padding-top:8px;margin-top:8px;}
 .com-tiempo{text-align:right;font-size:0.68rem;color:#888;margin-top:4px;}
 .com-footer{padding:10px 14px;border-top:2px solid #eee;}
-.btn-listo{width:100%;background:#000;color:#fff;border:none;padding:11px;border-radius:8px;font-weight:900;cursor:pointer;font-size:0.88rem;letter-spacing:.5px;transition:background .2s;}
+.com-footer-btns{display:flex;gap:6px;}
+.btn-listo{flex:1;background:#000;color:#fff;border:none;padding:11px;border-radius:8px;font-weight:900;cursor:pointer;font-size:0.88rem;letter-spacing:.5px;transition:background .2s;}
 .btn-listo:hover{background:#222;}
-.btn-ya{width:100%;background:#eee;color:#999;border:none;padding:11px;border-radius:8px;font-weight:700;font-size:0.85rem;cursor:default;}
+.btn-ya{flex:1;background:#eee;color:#999;border:none;padding:11px;border-radius:8px;font-weight:700;font-size:0.85rem;cursor:default;}
+.btn-print{background:#f0f0f0;color:#333;border:none;padding:11px 13px;border-radius:8px;font-size:0.9rem;cursor:pointer;}
+.btn-print:hover{background:#ddd;}
+@media print{body{display:none;}}
 
 .empty{text-align:center;padding:60px 20px;color:#444;font-size:0.9rem;}
 .empty-icon{font-size:3rem;margin-bottom:12px;}
@@ -93,6 +97,15 @@ window.setTab=function(t){
   var m={all:'All',cocina:'Cocina',listo:'Listo'};
   document.getElementById('tab'+m[t]).classList.add('active');
   render();
+};
+
+window.imprimirComanda=function(btn){
+  var card=btn.closest('.com-card');
+  var body=card.querySelector('.com-body').innerHTML;
+  var header=card.querySelector('.com-header').innerHTML;
+  var w=window.open('','_blank','width=380,height=600');
+  w.document.write('<html><head><style>body{font-family:"Courier New",monospace;padding:16px;font-size:13px;background:#fff;color:#000;}.com-header{background:#000;color:#fff;padding:10px;text-align:center;margin-bottom:10px;}.com-meta{border-bottom:1px dashed #999;padding-bottom:8px;margin-bottom:8px;line-height:1.8;font-size:0.85rem;}.com-items{margin-bottom:8px;}.com-item{display:flex;justify-content:space-between;padding:2px 0;}.com-obs{color:#555;font-style:italic;padding-left:8px;font-size:0.8rem;}.com-notas{background:#fff8e1;border:1px solid #f59e0b;padding:6px 10px;font-size:0.8rem;margin-top:8px;}.com-fin{text-align:center;color:#aaa;border-top:1px dashed #ccc;padding-top:8px;margin-top:8px;font-size:0.8rem;}.com-tiempo{display:none;}</style></head><body><div class="com-header">'+header+'</div>'+body+'</body></html>');
+  w.document.close();w.focus();w.print();w.close();
 };
 
 window.marcarListo=function(id){
@@ -164,10 +177,13 @@ function render(){
         '<div class="com-tiempo" id="t'+p._id+'">⏱ '+tiempoLabel(p.fecha)+'</div>'+
       '</div>'+
       '<div class="com-footer">'+
-        (listo
-          ? '<button class="btn-ya">✅ Pedido listo</button>'
-          : '<button class="btn-listo" onclick="marcarListo(\''+p._id+'\')">✅ LISTO — CONFIRMAR</button>'
-        )+
+        '<div class="com-footer-btns">'+
+          (listo
+            ? '<button class="btn-ya">✅ Pedido listo</button>'
+            : '<button class="btn-listo" onclick="marcarListo(\''+p._id+'\')">✅ LISTO — CONFIRMAR</button>'
+          )+
+          '<button class="btn-print" onclick="imprimirComanda(this)" title="Imprimir">🖨️</button>'+
+        '</div>'+
       '</div>';
     grid.appendChild(card);
   });
