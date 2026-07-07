@@ -385,6 +385,11 @@ var MENU = {
     {id:'b1',name:'Postobón Cero',desc:'250ml',variants:[{label:'Precio',price:2500}]},
     {id:'b2',name:'Coca Cola',desc:'400ml',variants:[{label:'Precio',price:4000}]},
     {id:'b3',name:'Postobón',desc:'1.75 Lts.',variants:[{label:'Precio',price:7000}]}
+  ]},
+  promociones:{label:'🎉 Promociones',items:[
+    {id:'pr1',name:'Perro Sencillo Viernes',desc:'Solo los viernes',variants:[{label:'Precio',price:7000}],soloViernes:true},
+    {id:'pr2',name:'3 Perros Sencillos + Gaseosa',desc:'3 Perros sencillos, 1 gaseosa Postobón cero 250ml',variants:[{label:'Precio',price:24500}]},
+    {id:'pr3',name:'3 Butiperros + Gaseosa',desc:'3 Butiperros, 1 gaseosa Postobón',variants:[{label:'Precio',price:25900}]}
   ]}
 };
 
@@ -412,13 +417,16 @@ function onBarrio(){
   calcTotals();
 }
 
+function esViernes(){ return new Date().getDay()===5; }
+function filtrarDisponibles(items){ return items.filter(function(i){ return !i.soloViernes || esViernes(); }); }
+
 function renderCats(){
   var bar=document.getElementById('catsBar'); bar.innerHTML='';
   Object.keys(MENU).forEach(function(k){
     var btn=document.createElement('button');
     btn.className='cat-btn'+(k===activeCat?' active':'');
     btn.textContent=MENU[k].label;
-    btn.onclick=function(){activeCat=k;document.getElementById('searchInput').value='';document.querySelectorAll('.cat-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');renderGrid(MENU[k].items);};
+    btn.onclick=function(){activeCat=k;document.getElementById('searchInput').value='';document.querySelectorAll('.cat-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');renderGrid(filtrarDisponibles(MENU[k].items));};
     bar.appendChild(btn);
   });
 }
@@ -429,15 +437,16 @@ function renderGrid(items){
   items.forEach(function(item){
     var c=document.createElement('div'); c.className='item-card';
     var ph=item.variants.length===1?'<span class="chip">$'+item.variants[0].price.toLocaleString('es-CO')+'</span>':item.variants.map(function(v,i){return'<span class="chip'+(i>0?' alt':'')+'">'+v.label+': $'+v.price.toLocaleString('es-CO')+'</span>';}).join('');
-    c.innerHTML='<div class="item-name">'+item.name+'</div><div class="item-desc">'+item.desc+'</div><div class="item-prices">'+ph+'</div>';
+    var tagViernes=item.soloViernes?'<div style="font-size:0.68rem;color:#f97316;font-weight:800;margin-top:2px;">🗓️ Solo viernes</div>':'';
+    c.innerHTML='<div class="item-name">'+item.name+'</div><div class="item-desc">'+item.desc+'</div><div class="item-prices">'+ph+'</div>'+tagViernes;
     c.onclick=function(){openModal(item);}; g.appendChild(c);
   });
 }
 
 function onSearch(){
   var q=document.getElementById('searchInput').value.toLowerCase().trim();
-  if(!q){renderGrid(MENU[activeCat].items);return;}
-  var all=[];Object.values(MENU).forEach(function(cat){cat.items.forEach(function(i){if(i.name.toLowerCase().includes(q)||i.desc.toLowerCase().includes(q))all.push(i);});});
+  if(!q){renderGrid(filtrarDisponibles(MENU[activeCat].items));return;}
+  var all=[];Object.values(MENU).forEach(function(cat){filtrarDisponibles(cat.items).forEach(function(i){if(i.name.toLowerCase().includes(q)||i.desc.toLowerCase().includes(q))all.push(i);});});
   renderGrid(all);
 }
 
@@ -705,7 +714,7 @@ function renderCobrarList(){
 
 // INIT
 renderCats();
-renderGrid(MENU[activeCat].items);
+renderGrid(filtrarDisponibles(MENU[activeCat].items));
 document.getElementById('pedidoNumVal').textContent=pedidoNum+1;
 </script>
 
