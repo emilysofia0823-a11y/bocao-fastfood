@@ -41,7 +41,11 @@ var RECETAS = {
   // ── BEBIDAS ──
   b1:[['bebida gaseosa postobon cero 250ml',1]],
   b2:[['bebida gaseosa coca cola 400ml',1]],
-  b3:[['bebida gaseosa postobon 1.5ml',1]]
+  b3:[['bebida gaseosa postobon 1.5ml',1]],
+  // ── PROMOCIONES ──
+  pr1:[['pan perro',1],['salchicha de perro',1],['lechuga batavia',10],['SALSA TARTARA',15],['queso duro',10],['papa chongo',15],['GEL DE PIÑA',15],['PAPEL ALUMINIO',1],['BOLSA BLANCA 3KL',1]],
+  pr2:[['pan perro',3],['salchicha de perro',3],['SALSA TARTARA',45],['lechuga batavia',30],['queso duro',30],['papa chongo',45],['GEL DE PIÑA',45],['bebida gaseosa postobon cero 250ml',1],['PAPEL ALUMINIO',3],['BOLSA BLANCA 3KL',3]],
+  pr3:[['pan perro',3],['salchicha de perro',3],['queso duro',30],['papa chongo',45],['SALSA TARTARA',45],['GEL DE PIÑA',45],['BUTIFARRA',4],['PAPEL ALUMINIO',3],['BOLSA BLANCA 3KL',3],['bebida gaseosa postobon cero 250ml',1]]
 };
 
 // Nombre visible y categoría de cada producto (para la vista de recetas)
@@ -74,7 +78,10 @@ var MENU_INFO = {
   a9:{nombre:'Adicional ½ Suiza',cat:'➕ Adicionales'},
   b1:{nombre:'Postobón Cero 250ml',cat:'🥤 Bebidas'},
   b2:{nombre:'Coca Cola 400ml',cat:'🥤 Bebidas'},
-  b3:{nombre:'Postobón 1.75L',cat:'🥤 Bebidas'}
+  b3:{nombre:'Postobón 1.75L',cat:'🥤 Bebidas'},
+  pr1:{nombre:'Perro Sencillo Viernes',cat:'🎉 Promociones'},
+  pr2:{nombre:'3 Perros Sencillos + Gaseosa',cat:'🎉 Promociones'},
+  pr3:{nombre:'3 Butiperros + Gaseosa',cat:'🎉 Promociones'}
 };
 
 // Ingredientes medidos en UNIDADES (el resto se asume en GRAMOS)
