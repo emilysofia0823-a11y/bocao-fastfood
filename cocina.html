@@ -74,11 +74,14 @@ header{background:#0d0d0d;border-bottom:3px solid #f97316;padding:10px 18px;disp
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 var cfg={apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"};
 var app=initializeApp(cfg);
 var db=getFirestore(app);
+window._addTrabajoImpresion=function(job){
+  addDoc(collection(db,'trabajos_impresion'),Object.assign({},job,{fechaCreacion:serverTimestamp()})).catch(function(e){console.warn('impresion',e);});
+};
 
 var todos=[], tab='all', soundOn=false, prevIds=new Set();
 
@@ -99,13 +102,22 @@ window.setTab=function(t){
   render();
 };
 
-window.imprimirComanda=function(btn){
+window.imprimirComanda=function(btn,id){
   var card=btn.closest('.com-card');
   var body=card.querySelector('.com-body').innerHTML;
   var header=card.querySelector('.com-header').innerHTML;
   var w=window.open('','_blank','width=380,height=600');
   w.document.write('<html><head><style>body{font-family:"Courier New",monospace;padding:16px;font-size:13px;background:#fff;color:#000;}.com-header{background:#000;color:#fff;padding:10px;text-align:center;margin-bottom:10px;}.com-meta{border-bottom:1px dashed #999;padding-bottom:8px;margin-bottom:8px;line-height:1.8;font-size:0.85rem;}.com-items{margin-bottom:8px;}.com-item{display:flex;justify-content:space-between;padding:2px 0;}.com-obs{color:#555;font-style:italic;padding-left:8px;font-size:0.8rem;}.com-notas{background:#fff8e1;border:1px solid #f59e0b;padding:6px 10px;font-size:0.8rem;margin-top:8px;}.com-fin{text-align:center;color:#aaa;border-top:1px dashed #ccc;padding-top:8px;margin-top:8px;font-size:0.8rem;}.com-tiempo{display:none;}</style></head><body><div class="com-header">'+header+'</div>'+body+'</body></html>');
   w.document.close();w.focus();w.print();w.close();
+  var p=todos.find(function(x){return x._id===id;});
+  if(p && window._addTrabajoImpresion){
+    window._addTrabajoImpresion({
+      tipo:'comanda', numero:p.numero, tipoPedido:p.tipo, cajero:p.cajero||'Kelly',
+      cliente:p.cliente, items:p.items, notasGenerales:p.notasGenerales||'',
+      subtotal:p.subtotal, costoEnvio:p.costoEnvio||0, total:p.total, metodoPago:p.metodoPago||null,
+      estado:'pendiente', fecha:new Date().toISOString()
+    });
+  }
 };
 
 window.marcarListo=function(id){
@@ -182,7 +194,7 @@ function render(){
             ? '<button class="btn-ya">✅ Pedido listo</button>'
             : '<button class="btn-listo" onclick="marcarListo(\''+p._id+'\')">✅ LISTO — CONFIRMAR</button>'
           )+
-          '<button class="btn-print" onclick="imprimirComanda(this)" title="Imprimir">🖨️</button>'+
+          '<button class="btn-print" onclick="imprimirComanda(this,\''+p._id+'\')" title="Imprimir">🖨️</button>'+
         '</div>'+
       '</div>';
     grid.appendChild(card);
