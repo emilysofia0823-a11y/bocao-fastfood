@@ -188,13 +188,16 @@ function renderPedidos(){
   var mLabels = { efectivo:'💵 Efectivo', nequi:'📱 Nequi', transferencia:'🏦 Transferencia' };
   var mClass  = { efectivo:'met-efectivo', nequi:'met-nequi', transferencia:'met-transferencia' };
 
+  // Un pedido solo es relevante para el domiciliario si cocina lo terminó Y ya está cobrado.
+  function listoParaEntregar(p){ return p.listoCocina===true && !!p.metodoPago && (!p.estadoEntrega||p.estadoEntrega==='pendiente'); }
+
   var shown = pedidos;
-  if(tabActual==='pendiente') shown = pedidos.filter(function(p){ return p.estado==='listo'; });
-  if(tabActual==='camino')    shown = pedidos.filter(function(p){ return p.estado==='en_camino'; });
-  if(tabActual==='done')      shown = pedidos.filter(function(p){ return p.estado==='entregado'; });
+  if(tabActual==='pendiente') shown = pedidos.filter(listoParaEntregar);
+  if(tabActual==='camino')    shown = pedidos.filter(function(p){ return p.estadoEntrega==='en_camino'; });
+  if(tabActual==='done')      shown = pedidos.filter(function(p){ return p.estadoEntrega==='entregado'; });
 
   // badge pendientes
-  var np = pedidos.filter(function(p){ return p.estado==='listo'; }).length;
+  var np = pedidos.filter(listoParaEntregar).length;
   var badge = document.getElementById('pendingCount');
   badge.style.display = np>0 ? 'inline-block' : 'none';
   badge.textContent = np+' nuevo'+(np!==1?'s':'');
@@ -211,9 +214,9 @@ function renderPedidos(){
   el.innerHTML = '';
   shown.forEach(function(p){
     var cli = p.cliente||{};
-    var esListo   = p.estado==='listo';
-    var esCamino  = p.estado==='en_camino';
-    var esDone    = p.estado==='entregado';
+    var esListo   = listoParaEntregar(p);
+    var esCamino  = p.estadoEntrega==='en_camino';
+    var esDone    = p.estadoEntrega==='entregado';
     var numClass  = esDone?'done':esCamino?'camino':'';
     var cardClass = esDone?'done':esCamino?'camino':np>0?'urgente':'';
     var estLabel  = esListo?'✅ Listo':esCamino?'🛵 En camino':'Entregado';
@@ -311,8 +314,8 @@ var app = initializeApp({
 });
 var db = getFirestore(app);
 
-window._updatePedido = function(id, estado){
-  updateDoc(doc(db,'pedidos',id),{estado:estado})
+window._updatePedido = function(id, estadoEntrega){
+  updateDoc(doc(db,'pedidos',id),{estadoEntrega:estadoEntrega})
     .catch(function(e){ alert('Error: '+e.message); });
 };
 
@@ -328,13 +331,13 @@ window._startListen = function(){
       var p = d.data();
       // SOLO domicilios activos de hoy — sin datos de admin
       if(p.tipo !== 'domicilio') return;
-      if(p.estado === 'pagado') return; // ya cerrado
       if(p.fecha && new Date(p.fecha) < hoy) return; // de otro día
       // Solo campos necesarios para el domiciliario — sin totales de negocio
       pedidos.push({
         _id: d.id,
         numero: p.numero,
-        estado: p.estado,
+        listoCocina: p.listoCocina===true,
+        estadoEntrega: p.estadoEntrega||'pendiente',
         fecha: p.fecha,
         cliente: p.cliente,
         items: p.items,
