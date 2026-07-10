@@ -65,8 +65,18 @@ if(!sess||sess.role!=='admin'){window.location.href='/login.html';}
 function logout(){sessionStorage.removeItem('bocao_sess');window.location.href='/login.html';}
 var todos=[], filtro='all';
 function fmt(n){return'$'+(n||0).toLocaleString('es-CO');}
-function estadoLabel(e){var m={pendiente:'En espera',en_cocina:'En cocina',listo:'Listo',en_camino:'En camino',entregado:'Entregado',pagado:'Pagado'};return m[e]||e;}
-function estadoClass(e){if(e==='listo'||e==='entregado')return'elisto';if(e==='pagado')return'epagado';return'epc';}
+function esPagado(p){return !!p.metodoPago;}
+function estadoLabel(p){
+  var m={pendiente:'En espera',en_cocina:'En cocina',listo:'Listo',en_camino:'En camino',entregado:'Entregado',pagado:'Pagado'};
+  var base=m[p.estado]||p.estado;
+  if(esPagado(p)&&(p.estado==='listo'||p.estado==='en_camino'))return base+' · Pagado';
+  return base;
+}
+function estadoClass(p){
+  if(esPagado(p))return'epagado';
+  if(p.estado==='listo'||p.estado==='entregado')return'elisto';
+  return'epc';
+}
 window.setF=function(f){
   filtro=f;
   ['All','Activos','Listo','Pagado','Dom'].forEach(function(k){document.getElementById('f'+k).classList.remove('active');});
@@ -78,12 +88,12 @@ function render(){
   var shown=todos;
   if(filtro==='activos')shown=todos.filter(function(p){return p.estado==='pendiente'||p.estado==='en_cocina';});
   else if(filtro==='listo')shown=todos.filter(function(p){return p.estado==='listo';});
-  else if(filtro==='pagado')shown=todos.filter(function(p){return p.estado==='pagado'||p.estado==='entregado';});
+  else if(filtro==='pagado')shown=todos.filter(function(p){return esPagado(p);});
   else if(filtro==='domicilio')shown=todos.filter(function(p){return p.tipo==='domicilio';});
   document.getElementById('cAll').textContent=todos.length;
   document.getElementById('cActivos').textContent=todos.filter(function(p){return p.estado==='pendiente'||p.estado==='en_cocina';}).length;
   document.getElementById('cListo').textContent=todos.filter(function(p){return p.estado==='listo';}).length;
-  document.getElementById('cPagado').textContent=todos.filter(function(p){return p.estado==='pagado'||p.estado==='entregado';}).length;
+  document.getElementById('cPagado').textContent=todos.filter(function(p){return esPagado(p);}).length;
   document.getElementById('cDom').textContent=todos.filter(function(p){return p.tipo==='domicilio';}).length;
   var g=document.getElementById('grid'); g.innerHTML='';
   if(shown.length===0){g.innerHTML='<div class="empty">No hay órdenes en esta categoría.</div>';return;}
@@ -98,7 +108,7 @@ function render(){
     var itemsHTML=(p.items||[]).map(function(i){return'<div class="isrow"><span>'+i.cantidad+'× '+i.nombre+'</span><span style="color:var(--yellow)">'+fmt(i.precio*i.cantidad)+'</span></div>';}).join('');
     var card=document.createElement('div');
     card.className='card '+(p.estado||'');
-    card.innerHTML='<div class="card-head"><span class="num">#'+p.numero+'</span>'+tTag+'<span class="hora">'+hora+'</span><span class="estado-tag '+estadoClass(p.estado)+'">'+estadoLabel(p.estado)+'</span></div><div class="card-body"><div class="cli">'+cliHTML+'</div><div class="items-sm">'+itemsHTML+'</div><div class="total-line"><span>Total</span><span>'+fmt(p.total)+'</span></div></div>';
+    card.innerHTML='<div class="card-head"><span class="num">#'+p.numero+'</span>'+tTag+'<span class="hora">'+hora+'</span><span class="estado-tag '+estadoClass(p)+'">'+estadoLabel(p)+'</span></div><div class="card-body"><div class="cli">'+cliHTML+'</div><div class="items-sm">'+itemsHTML+'</div><div class="total-line"><span>Total</span><span>'+fmt(p.total)+'</span></div></div>';
     g.appendChild(card);
   });
 }
