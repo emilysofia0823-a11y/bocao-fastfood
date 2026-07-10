@@ -121,7 +121,7 @@ window.imprimirComanda=function(btn,id){
 };
 
 window.marcarListo=function(id){
-  updateDoc(doc(db,'pedidos',id),{estado:'listo'}).catch(function(e){alert('Error: '+e.message);});
+  updateDoc(doc(db,'pedidos',id),{listoCocina:true}).catch(function(e){alert('Error: '+e.message);});
 };
 
 function beep(){
@@ -142,11 +142,11 @@ function tiempoLabel(fecha){
 function render(){
   var grid=document.getElementById('grid');
   var shown=todos;
-  if(tab==='cocina') shown=todos.filter(function(p){return p.estado==='en_cocina'||p.estado==='pendiente';});
-  if(tab==='listo')  shown=todos.filter(function(p){return p.estado==='listo';});
+  if(tab==='cocina') shown=todos.filter(function(p){return !p.listoCocina;});
+  if(tab==='listo')  shown=todos.filter(function(p){return p.listoCocina===true;});
 
-  var nc=todos.filter(function(p){return p.estado==='en_cocina'||p.estado==='pendiente';}).length;
-  var nl=todos.filter(function(p){return p.estado==='listo';}).length;
+  var nc=todos.filter(function(p){return !p.listoCocina;}).length;
+  var nl=todos.filter(function(p){return p.listoCocina===true;}).length;
   document.getElementById('cAll').textContent=todos.length;
   document.getElementById('cCocina').textContent=nc;
   document.getElementById('cListo').textContent=nl;
@@ -158,7 +158,7 @@ function render(){
 
   grid.innerHTML='';
   shown.forEach(function(p){
-    var listo=p.estado==='listo';
+    var listo=p.listoCocina===true;
     var cli=p.cliente||{};
     var tl=p.tipo==='domicilio'?'🛵 DOMICILIO':'🏃 RECOGER';
     var fecha=p.fecha?new Date(p.fecha).toLocaleString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
@@ -216,8 +216,8 @@ onSnapshot(collection(db,'pedidos'), function(snap){
   todos=[];
   snap.forEach(function(d){
     var p=d.data();
-    // solo activos de hoy
-    if(p.estado==='pagado'||p.estado==='entregado') return;
+    // solo activos de hoy (una vez entregado, sale de la pantalla de cocina)
+    if(p.estadoEntrega==='entregado') return;
     if(p.fecha && new Date(p.fecha)<hoy) return;
     todos.push(Object.assign({_id:d.id},p));
   });
