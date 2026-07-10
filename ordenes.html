@@ -61,20 +61,28 @@ header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:10p
 
 <script>
 var sess=JSON.parse(sessionStorage.getItem('bocao_sess')||'null');
+window.sess=sess;
 if(!sess||sess.role!=='admin'){window.location.href='/login.html';}
 function logout(){sessionStorage.removeItem('bocao_sess');window.location.href='/login.html';}
 var todos=[], filtro='all';
 function fmt(n){return'$'+(n||0).toLocaleString('es-CO');}
 function esPagado(p){return !!p.metodoPago;}
+// Estado real = progreso de cocina/entrega. El pago es independiente y se muestra aparte.
+function cardEstadoKey(p){
+  if(p.estadoEntrega==='entregado')return'entregado';
+  if(p.estadoEntrega==='en_camino')return'en_camino';
+  if(p.listoCocina===true)return'listo';
+  return'en_cocina';
+}
 function estadoLabel(p){
-  var m={pendiente:'En espera',en_cocina:'En cocina',listo:'Listo',en_camino:'En camino',entregado:'Entregado',pagado:'Pagado'};
-  var base=m[p.estado]||p.estado;
-  if(esPagado(p)&&(p.estado==='listo'||p.estado==='en_camino'))return base+' · Pagado';
-  return base;
+  var m={en_cocina:'En cocina',listo:'Listo',en_camino:'En camino',entregado:'Entregado'};
+  var base=m[cardEstadoKey(p)];
+  return base+(esPagado(p)?' · Pagado':' · Sin cobrar');
 }
 function estadoClass(p){
-  if(esPagado(p))return'epagado';
-  if(p.estado==='listo'||p.estado==='entregado')return'elisto';
+  var k=cardEstadoKey(p);
+  if(k==='entregado'||k==='listo')return'elisto';
+  if(k==='en_camino')return'epagado';
   return'epc';
 }
 window.setF=function(f){
@@ -86,13 +94,13 @@ window.setF=function(f){
 };
 function render(){
   var shown=todos;
-  if(filtro==='activos')shown=todos.filter(function(p){return p.estado==='pendiente'||p.estado==='en_cocina';});
-  else if(filtro==='listo')shown=todos.filter(function(p){return p.estado==='listo';});
+  if(filtro==='activos')shown=todos.filter(function(p){return !p.listoCocina;});
+  else if(filtro==='listo')shown=todos.filter(function(p){return p.listoCocina===true&&p.estadoEntrega!=='entregado';});
   else if(filtro==='pagado')shown=todos.filter(function(p){return esPagado(p);});
   else if(filtro==='domicilio')shown=todos.filter(function(p){return p.tipo==='domicilio';});
   document.getElementById('cAll').textContent=todos.length;
-  document.getElementById('cActivos').textContent=todos.filter(function(p){return p.estado==='pendiente'||p.estado==='en_cocina';}).length;
-  document.getElementById('cListo').textContent=todos.filter(function(p){return p.estado==='listo';}).length;
+  document.getElementById('cActivos').textContent=todos.filter(function(p){return !p.listoCocina;}).length;
+  document.getElementById('cListo').textContent=todos.filter(function(p){return p.listoCocina===true&&p.estadoEntrega!=='entregado';}).length;
   document.getElementById('cPagado').textContent=todos.filter(function(p){return esPagado(p);}).length;
   document.getElementById('cDom').textContent=todos.filter(function(p){return p.tipo==='domicilio';}).length;
   var g=document.getElementById('grid'); g.innerHTML='';
@@ -107,19 +115,42 @@ function render(){
     if(cli.barrio)cliHTML+='Barrio: '+cli.barrio;
     var itemsHTML=(p.items||[]).map(function(i){return'<div class="isrow"><span>'+i.cantidad+'× '+i.nombre+'</span><span style="color:var(--yellow)">'+fmt(i.precio*i.cantidad)+'</span></div>';}).join('');
     var card=document.createElement('div');
-    card.className='card '+(p.estado||'');
-    card.innerHTML='<div class="card-head"><span class="num">#'+p.numero+'</span>'+tTag+'<span class="hora">'+hora+'</span><span class="estado-tag '+estadoClass(p)+'">'+estadoLabel(p)+'</span></div><div class="card-body"><div class="cli">'+cliHTML+'</div><div class="items-sm">'+itemsHTML+'</div><div class="total-line"><span>Total</span><span>'+fmt(p.total)+'</span></div></div>';
+    card.className='card '+cardEstadoKey(p);
+    var delBtn='<button class="del-x" onclick="eliminarPedido(\''+p._id+'\',\''+p.numero+'\')" title="Eliminar pedido" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;margin-left:6px;">🗑</button>';
+    card.innerHTML='<div class="card-head"><span class="num">#'+p.numero+'</span>'+tTag+'<span class="hora">'+hora+'</span><span class="estado-tag '+estadoClass(p)+'">'+estadoLabel(p)+'</span>'+delBtn+'</div><div class="card-body"><div class="cli">'+cliHTML+'</div><div class="items-sm">'+itemsHTML+'</div><div class="total-line"><span>Total</span><span>'+fmt(p.total)+'</span></div></div>';
     g.appendChild(card);
   });
 }
+
+window.eliminarPedido=function(id,numero){
+  var motivo=prompt('¿Por qué vas a eliminar el pedido #'+numero+'? (obligatorio, ej: "pedido de prueba")');
+  if(motivo===null)return;
+  motivo=motivo.trim();
+  if(!motivo){alert('Debes escribir un motivo para eliminar el pedido.');return;}
+  if(!confirm('¿Eliminar el pedido #'+numero+' definitivamente? Esta acción no se puede deshacer.'))return;
+  var pedido=todos.find(function(p){return p._id===id;});
+  if(window._eliminarPedidoConMotivo) window._eliminarPedidoConMotivo(id,motivo,pedido);
+};
 </script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 var app=initializeApp({apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"});
 var db=getFirestore(app);
 window._db=db; window._doc=doc; window._updateDoc=updateDoc;
+// Elimina un pedido, pero primero deja registro de auditoría (qué era, quién y por qué)
+window._eliminarPedidoConMotivo=function(id,motivo,pedido){
+  var registro=Object.assign({},pedido||{},{
+    pedidoId:id, motivo:motivo,
+    eliminadoPor:(window.sess&&window.sess.nombre)||'admin',
+    fechaEliminacion:new Date().toISOString(),
+    fechaEliminacionTS:serverTimestamp()
+  });
+  delete registro._id;
+  addDoc(collection(db,'pedidos_eliminados'),registro).catch(function(e){console.warn('audit',e);});
+  deleteDoc(doc(db,'pedidos',id)).catch(function(e){alert('Error al eliminar: '+e.message);});
+};
 var hoy=new Date();hoy.setHours(0,0,0,0);
 var q=query(collection(db,'pedidos'),where('fecha','>=',hoy.toISOString()));
 onSnapshot(q,function(snap){
