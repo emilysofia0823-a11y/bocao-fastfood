@@ -10,13 +10,15 @@
 :root{--bg:#0d0d0d;--panel:#161616;--card:#1e1e1e;--border:#2a2a2a;--yellow:#FFD700;--red:#CC0000;--green:#22c55e;--blue:#3b82f6;--text:#f0f0f0;--muted:#777;}
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Arial,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
 
-header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:8px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
-.logo{font-size:1rem;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1px;white-space:nowrap;}
-.tipo-btns{display:flex;gap:6px;}
-.tipo-btn{padding:6px 16px;border-radius:50px;border:2px solid var(--border);background:var(--card);color:var(--muted);font-weight:700;cursor:pointer;font-size:0.8rem;transition:all .2s;}
+header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:8px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;}
+header::-webkit-scrollbar{height:4px;}
+header::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+.logo{font-size:1rem;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1px;white-space:nowrap;flex-shrink:0;}
+.tipo-btns{display:flex;gap:6px;flex-shrink:0;}
+.tipo-btn{padding:6px 16px;border-radius:50px;border:2px solid var(--border);background:var(--card);color:var(--muted);font-weight:700;cursor:pointer;font-size:0.8rem;transition:all .2s;white-space:nowrap;flex-shrink:0;}
 .tipo-btn.active{background:var(--yellow);border-color:var(--yellow);color:#000;}
-.header-links{margin-left:auto;display:flex;gap:8px;}
-.hlink{padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;text-decoration:none;transition:all .2s;}
+.header-links{margin-left:auto;display:flex;gap:8px;flex-shrink:0;}
+.hlink{padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;text-decoration:none;transition:all .2s;white-space:nowrap;flex-shrink:0;}
 .hlink:hover{border-color:var(--yellow);color:var(--yellow);}
 
 .body{display:flex;flex:1;overflow:hidden;}
