@@ -182,7 +182,7 @@ function renderStats(data){
 
 function renderFacturas(){
   var shown=filtroFF==='all'?todosData:todosData.filter(function(p){
-    if(filtroFF==='pagado')return p.estado==='pagado';
+    if(filtroFF==='pagado')return !!p.metodoPago;
     return p.tipo===filtroFF;
   });
   document.getElementById('factCount').textContent=shown.length+' factura'+(shown.length!==1?'s':'');
@@ -192,8 +192,8 @@ function renderFacturas(){
   shown.forEach(function(p){
     var hora=p.fecha?new Date(p.fecha).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}):'';
     var tTag=p.tipo==='domicilio'?'<span class="fact-tipo ftdom">🛵 Dom</span>':'<span class="fact-tipo ftrec">🏃 Rec</span>';
-    var estClass=p.estado==='pagado'?'est-pagado':'est-pendiente';
-    var estLabel=p.estado==='pagado'?'Pagado':'Pendiente';
+    var estClass=p.metodoPago?'est-pagado':'est-pendiente';
+    var estLabel=p.metodoPago?'Pagado':'Pendiente';
     var cli=p.cliente&&p.cliente.nombre?p.cliente.nombre:'Sin nombre';
     var mLabels={efectivo:'💵 Efectivo',nequi:'📱 Nequi',transferencia:'🏦 Transferencia'};
     var itemsHTML=(p.items||[]).map(function(i){
