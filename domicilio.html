@@ -185,11 +185,11 @@ function tiempoLabel(fecha){
 
 function renderPedidos(){
   var el = document.getElementById('cards');
-  var mLabels = { efectivo:'💵 Efectivo', nequi:'📱 Nequi', transferencia:'🏦 Transferencia' };
-  var mClass  = { efectivo:'met-efectivo', nequi:'met-nequi', transferencia:'met-transferencia' };
+  var mLabels = { efectivo:'💵 Efectivo', nequi:'📱 Nequi', transferencia:'🏦 Transferencia', mixto:'🔀 Mixto' };
+  var mClass  = { efectivo:'met-efectivo', nequi:'met-nequi', transferencia:'met-transferencia', mixto:'met-nequi' };
 
-  // Un pedido solo es relevante para el domiciliario si cocina lo terminó Y ya está cobrado.
-  function listoParaEntregar(p){ return p.listoCocina===true && !!p.metodoPago && (!p.estadoEntrega||p.estadoEntrega==='pendiente'); }
+  // Sin pantalla de cocina: un pedido es relevante para el domiciliario en cuanto está cobrado.
+  function listoParaEntregar(p){ return !!p.metodoPago && (!p.estadoEntrega||p.estadoEntrega==='pendiente'); }
 
   var shown = pedidos;
   if(tabActual==='pendiente') shown = pedidos.filter(listoParaEntregar);
