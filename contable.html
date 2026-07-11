@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Boca'o — Contable</title>
+<script>(function(){var s=JSON.parse(sessionStorage.getItem('bocao_sess')||'null');if(!s||s.role!=='admin'){window.location.href='/login.html';}window.sess=s;})();</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#0a0a0a;--panel:#141414;--card:#1a1a1a;--border:#2a2a2a;--yellow:#FFD700;--red:#CC0000;--green:#22c55e;--blue:#3b82f6;--text:#f0f0f0;--muted:#666;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;}
+header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:10px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.logo{font-size:1rem;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1px;}
+.back{padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;text-decoration:none;}
+.back:hover{border-color:var(--yellow);color:var(--yellow);}
+.logout{margin-left:auto;padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;}
+.logout:hover{border-color:var(--red);color:var(--red);}
+
+.tabs{display:flex;gap:6px;padding:14px 20px;background:var(--panel);border-bottom:1px solid var(--border);}
+.tab{padding:8px 18px;border-radius:50px;border:2px solid var(--border);background:var(--card);color:var(--muted);font-weight:700;cursor:pointer;font-size:0.82rem;transition:all .2s;}
+.tab.active{background:var(--yellow);border-color:var(--yellow);color:#000;}
+.view{display:none;padding:20px;}
+.view.active{display:block;}
+
+/* ACTIVOS LÍQUIDOS */
+.balance-banner{background:linear-gradient(135deg,#14532d,#052e16);border:2px solid var(--green);border-radius:14px;padding:18px 22px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;}
+.balance-banner .lbl{font-size:0.78rem;color:#86efac;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.balance-banner .val{font-size:1.8rem;font-weight:900;color:#fff;}
+.cajas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+.caja-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.caja-card .cnombre{font-weight:800;font-size:0.95rem;}
+.caja-card .csub{font-size:0.7rem;color:var(--muted);margin-top:2px;}
+.caja-card .csaldo{font-size:1.15rem;font-weight:900;color:var(--yellow);}
+.caja-card .csaldo.neg{color:var(--red);}
+.btn-add-caja{margin-top:16px;padding:10px 18px;border-radius:10px;border:2px dashed var(--border);background:none;color:var(--muted);font-weight:700;cursor:pointer;font-size:0.85rem;}
+.btn-add-caja:hover{border-color:var(--yellow);color:var(--yellow);}
+
+/* INGRESOS/GASTOS */
+.form-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;max-width:480px;margin-bottom:24px;}
+.f-field{margin-bottom:14px;}
+.f-field label{font-size:0.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;}
+.f-field input,.f-field select{width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:8px;font-size:0.88rem;outline:none;font-family:inherit;}
+.f-field input:focus,.f-field select:focus{border-color:var(--yellow);}
+.tipo-radios{display:flex;gap:10px;}
+.tipo-radio{flex:1;padding:12px;border-radius:10px;border:2px solid var(--border);background:var(--panel);text-align:center;cursor:pointer;font-weight:700;font-size:0.85rem;transition:all .2s;}
+.tipo-radio.sel-ingreso{border-color:var(--green);color:var(--green);background:#0d2818;}
+.tipo-radio.sel-egreso{border-color:var(--red);color:#ff6b6b;background:#2d0a0a;}
+.btn-guardar{width:100%;background:var(--yellow);color:#000;border:none;padding:12px;border-radius:10px;font-weight:900;cursor:pointer;font-size:0.9rem;text-transform:uppercase;letter-spacing:.5px;margin-top:6px;}
+.btn-guardar:hover{opacity:.9;}
+
+.mov-list{max-width:100%;}
+.mov-row{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.mov-tipo-tag{font-size:0.68rem;font-weight:800;padding:3px 10px;border-radius:50px;flex-shrink:0;}
+.mov-tipo-tag.ingreso{background:#14311d;color:var(--green);}
+.mov-tipo-tag.egreso{background:#3a0a0a;color:#ff6b6b;}
+.mov-info{flex:1;min-width:160px;}
+.mov-ref{font-weight:700;font-size:0.85rem;}
+.mov-sub{font-size:0.72rem;color:var(--muted);margin-top:2px;}
+.mov-monto{font-weight:900;font-size:0.95rem;}
+.mov-monto.ingreso{color:var(--green);}
+.mov-monto.egreso{color:#ff6b6b;}
+.del-x{background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;}
+.del-x:hover{color:var(--red);}
+.empty{text-align:center;padding:40px 20px;color:var(--muted);}
+.section-title{font-size:0.8rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="panel.html">← Panel</a>
+  <div class="logo">💼 Contable</div>
+  <button class="logout" onclick="logout()">Salir</button>
+</header>
+
+<div class="tabs">
+  <button class="tab active" id="tabLiq" onclick="setTab('liquidos')">💧 Activos Líquidos</button>
+  <button class="tab" id="tabMov" onclick="setTab('movimientos')">📥📤 Ingresos / Gastos</button>
+</div>
+
+<!-- ACTIVOS LÍQUIDOS -->
+<div class="view active" id="viewLiquidos">
+  <div class="balance-banner">
+    <span class="lbl">Balance total (todas las cajas)</span>
+    <span class="val" id="balanceTotal">$0</span>
+  </div>
+  <div class="cajas-grid" id="cajasGrid"><div class="empty">Cargando cajas...</div></div>
+  <button class="btn-add-caja" onclick="abrirNuevaCaja()">➕ Nueva caja</button>
+</div>
+
+<!-- INGRESOS / GASTOS -->
+<div class="view" id="viewMovimientos">
+  <div class="form-box">
+    <div class="f-field">
+      <label>Referencia / Descripción *</label>
+      <input type="text" id="mRef" placeholder="Ej: Compra de carne, pago arriendo julio..."/>
+    </div>
+    <div class="f-field">
+      <label>Clasificación</label>
+      <select id="mClasif">
+        <option value="Compra de insumos">Compra de insumos</option>
+        <option value="Nómina / Pago empleados">Nómina / Pago empleados</option>
+        <option value="Servicios públicos">Servicios públicos</option>
+        <option value="Arriendo">Arriendo</option>
+        <option value="Mantenimiento">Mantenimiento</option>
+        <option value="Transporte">Transporte</option>
+        <option value="Impuestos">Impuestos</option>
+        <option value="Préstamo / Capital">Préstamo / Capital</option>
+        <option value="Traslado entre cajas">Traslado entre cajas</option>
+        <option value="Otro">Otro</option>
+      </select>
+    </div>
+    <div class="f-field">
+      <label>Fecha</label>
+      <input type="date" id="mFecha"/>
+    </div>
+    <div class="f-field">
+      <label>Tipo de movimiento *</label>
+      <div class="tipo-radios">
+        <div class="tipo-radio" id="tipoIngresoBtn" onclick="selTipoMov('ingreso')">📥 Ingreso</div>
+        <div class="tipo-radio" id="tipoEgresoBtn" onclick="selTipoMov('egreso')">📤 Egreso</div>
+      </div>
+    </div>
+    <div class="f-field">
+      <label>Caja *</label>
+      <select id="mCaja"><option value="">-- Selecciona una caja --</option></select>
+    </div>
+    <div class="f-field">
+      <label>Monto *</label>
+      <input type="number" id="mMonto" placeholder="0"/>
+    </div>
+    <button class="btn-guardar" onclick="guardarMovimiento()">Guardar transacción</button>
+  </div>
+
+  <div class="section-title">Movimientos recientes</div>
+  <div class="mov-list" id="movList"><div class="empty">Cargando movimientos...</div></div>
+</div>
+
+<script>
+function logout(){sessionStorage.removeItem('bocao_sess');window.location.href='/login.html';}
+function fmt(n){return'$'+Math.round(n||0).toLocaleString('es-CO');}
+
+var cajas=[], movimientos=[], tipoMovSel=null;
+
+window.setTab=function(t){
+  ['Liq','Mov'].forEach(function(k){document.getElementById('tab'+k).classList.remove('active');});
+  ['Liquidos','Movimientos'].forEach(function(k){document.getElementById('view'+k).classList.remove('active');});
+  var m={liquidos:'Liq',movimientos:'Mov'};
+  document.getElementById('tab'+m[t]).classList.add('active');
+  document.getElementById('view'+(t==='liquidos'?'Liquidos':'Movimientos')).classList.add('active');
+};
+
+function saldoDeCaja(cajaId){
+  var caja=cajas.find(function(c){return c._id===cajaId;});
+  var saldo=caja?(caja.saldoInicial||0):0;
+  movimientos.forEach(function(m){
+    if(m.cajaId!==cajaId)return;
+    saldo+=(m.tipo==='ingreso'?1:-1)*(m.monto||0);
+  });
+  return saldo;
+}
+
+function renderLiquidos(){
+  var g=document.getElementById('cajasGrid');
+  if(cajas.length===0){g.innerHTML='<div class="empty">No hay cajas creadas. Crea la primera con "➕ Nueva caja".</div>';document.getElementById('balanceTotal').textContent='$0';return;}
+  g.innerHTML='';
+  var total=0;
+  cajas.forEach(function(c){
+    var saldo=saldoDeCaja(c._id);
+    total+=saldo;
+    var card=document.createElement('div'); card.className='caja-card';
+    card.innerHTML='<div><div class="cnombre">'+c.nombre+'</div><div class="csub">Caja / cuenta</div></div><div class="csaldo'+(saldo<0?' neg':'')+'">'+fmt(saldo)+'</div>';
+    g.appendChild(card);
+  });
+  document.getElementById('balanceTotal').textContent=fmt(total);
+}
+
+function renderCajaSelect(){
+  var sel=document.getElementById('mCaja');
+  var actual=sel.value;
+  sel.innerHTML='<option value="">-- Selecciona una caja --</option>';
+  cajas.forEach(function(c){
+    var opt=document.createElement('option'); opt.value=c._id; opt.textContent=c.nombre;
+    sel.appendChild(opt);
+  });
+  sel.value=actual;
+}
+
+window.abrirNuevaCaja=function(){
+  var nombre=prompt('Nombre de la nueva caja (ej: Bancolombia, Efectivo, Nequi, Rappi):');
+  if(!nombre||!nombre.trim())return;
+  var saldoInicial=prompt('Saldo inicial de esta caja (deja en 0 si no tienes uno):','0');
+  var si=parseFloat(saldoInicial)||0;
+  if(window._addCaja) window._addCaja({nombre:nombre.trim().toUpperCase(),saldoInicial:si});
+};
+
+window.selTipoMov=function(t){
+  tipoMovSel=t;
+  document.getElementById('tipoIngresoBtn').classList.toggle('sel-ingreso',t==='ingreso');
+  document.getElementById('tipoEgresoBtn').classList.toggle('sel-egreso',t==='egreso');
+};
+
+window.guardarMovimiento=function(){
+  var ref=document.getElementById('mRef').value.trim();
+  var clasif=document.getElementById('mClasif').value;
+  var fecha=document.getElementById('mFecha').value;
+  var cajaId=document.getElementById('mCaja').value;
+  var monto=parseFloat(document.getElementById('mMonto').value)||0;
+  if(!ref){alert('Escribe una referencia/descripción.');return;}
+  if(!tipoMovSel){alert('Selecciona si es Ingreso o Egreso.');return;}
+  if(!cajaId){alert('Selecciona una caja.');return;}
+  if(monto<=0){alert('El monto debe ser mayor a 0.');return;}
+  var caja=cajas.find(function(c){return c._id===cajaId;});
+  var mov={
+    referencia:ref, clasificacion:clasif, fecha:fecha||new Date().toISOString().slice(0,10),
+    tipo:tipoMovSel, cajaId:cajaId, cajaNombre:caja?caja.nombre:'',
+    monto:monto, registradoPor:(window.sess&&window.sess.nombre)||'admin'
+  };
+  if(window._addMovimiento){
+    window._addMovimiento(mov);
+    document.getElementById('mRef').value='';
+    document.getElementById('mMonto').value='';
+    tipoMovSel=null;
+    document.getElementById('tipoIngresoBtn').classList.remove('sel-ingreso');
+    document.getElementById('tipoEgresoBtn').classList.remove('sel-egreso');
+  }
+};
+
+window.eliminarMovimiento=function(id,ref){
+  if(!confirm('¿Eliminar el movimiento "'+ref+'"?'))return;
+  if(window._deleteMovimiento) window._deleteMovimiento(id);
+};
+
+function renderMovimientos(){
+  var el=document.getElementById('movList');
+  if(movimientos.length===0){el.innerHTML='<div class="empty">Sin movimientos registrados.</div>';return;}
+  var ordenados=movimientos.slice().sort(function(a,b){return (b.fecha||'').localeCompare(a.fecha||'');});
+  el.innerHTML='';
+  ordenados.forEach(function(m){
+    var row=document.createElement('div'); row.className='mov-row';
+    row.innerHTML=
+      '<span class="mov-tipo-tag '+m.tipo+'">'+(m.tipo==='ingreso'?'📥 Ingreso':'📤 Egreso')+'</span>'+
+      '<div class="mov-info"><div class="mov-ref">'+m.referencia+'</div><div class="mov-sub">'+(m.clasificacion||'')+' · '+m.cajaNombre+' · '+(m.fecha||'')+'</div></div>'+
+      '<span class="mov-monto '+m.tipo+'">'+(m.tipo==='ingreso'?'+':'-')+fmt(m.monto)+'</span>'+
+      '<button class="del-x" onclick="eliminarMovimiento(\''+m._id+'\',\''+(m.referencia||'').replace(/'/g,"")+'\')" title="Eliminar">🗑</button>';
+    el.appendChild(row);
+  });
+}
+
+// Fecha por defecto: hoy
+document.getElementById('mFecha').value=new Date().toISOString().slice(0,10);
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+var app=initializeApp({apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"});
+var db=getFirestore(app);
+
+window._addCaja=function(caja){
+  addDoc(collection(db,'cajas'),Object.assign({},caja,{fechaCreacion:serverTimestamp()})).catch(function(e){alert('Error: '+e.message);});
+};
+window._addMovimiento=function(mov){
+  addDoc(collection(db,'movimientos_tesoreria'),Object.assign({},mov,{fechaCreacion:serverTimestamp()})).catch(function(e){alert('Error: '+e.message);});
+};
+window._deleteMovimiento=function(id){
+  deleteDoc(doc(db,'movimientos_tesoreria',id)).catch(function(e){alert('Error: '+e.message);});
+};
+
+onSnapshot(collection(db,'cajas'),function(snap){
+  cajas=[];
+  snap.forEach(function(d){cajas.push(Object.assign({_id:d.id},d.data()));});
+  cajas.sort(function(a,b){return(a.nombre||'').localeCompare(b.nombre||'');});
+  renderLiquidos();
+  renderCajaSelect();
+});
+
+onSnapshot(collection(db,'movimientos_tesoreria'),function(snap){
+  movimientos=[];
+  snap.forEach(function(d){movimientos.push(Object.assign({_id:d.id},d.data()));});
+  renderLiquidos();
+  renderMovimientos();
+});
+</script>
+</body>
+</html>
