@@ -68,7 +68,7 @@ header::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
 .field select option{background:var(--card);}
 .envio-tag{font-size:0.7rem;color:var(--green);font-weight:700;margin-top:1px;}
 
-.cart-list{flex:1;overflow-y:auto;padding:8px 14px;min-height:0;}
+.cart-list{flex:1;overflow-y:auto;padding:8px 14px;min-height:80px;}
 .cart-empty{color:var(--muted);text-align:center;margin-top:24px;font-size:0.82rem;line-height:1.7;}
 .cart-row{background:var(--card);border-radius:9px;padding:9px 10px;margin-bottom:6px;}
 .cart-row-top{display:flex;justify-content:space-between;gap:6px;}
@@ -82,14 +82,14 @@ header::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
 .del-btn{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;}
 .del-btn:hover{color:var(--red);}
 
-.order-footer{padding:10px 14px;border-top:2px solid var(--border);flex-shrink:0;}
-.notes-field{margin-bottom:8px;}
-.notes-field label{font-size:0.67rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px;}
-.notes-field textarea{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:0.8rem;resize:none;outline:none;font-family:inherit;}
+.order-footer{padding:6px 14px;border-top:2px solid var(--border);flex-shrink:0;}
+.notes-field{margin-bottom:5px;}
+.notes-field label{font-size:0.62rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:2px;}
+.notes-field textarea{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 9px;border-radius:7px;font-size:0.78rem;resize:none;outline:none;font-family:inherit;}
 .notes-field textarea:focus{border-color:var(--yellow);}
-.totals-box{margin-bottom:8px;}
-.t-row{display:flex;justify-content:space-between;font-size:0.8rem;color:var(--muted);margin-bottom:3px;}
-.descuento-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
+.totals-box{margin-bottom:5px;}
+.t-row{display:flex;justify-content:space-between;font-size:0.8rem;color:var(--muted);margin-bottom:2px;}
+.descuento-row{display:flex;align-items:center;gap:6px;margin-bottom:2px;}
 .descuento-row span:first-child{font-size:0.8rem;color:var(--muted);}
 .descuento-row input{width:52px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:6px;font-size:0.8rem;text-align:center;outline:none;font-family:inherit;}
 .descuento-row input:focus{border-color:var(--yellow);}
@@ -305,7 +305,7 @@ header::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
     <div class="order-footer">
       <div class="notes-field">
         <label>Notas generales</label>
-        <textarea id="notasGen" rows="2" placeholder="Ej: sin cebolla, entregar en portería..."></textarea>
+        <textarea id="notasGen" rows="1" placeholder="Ej: sin cebolla, entregar en portería..."></textarea>
       </div>
       <div class="totals-box">
         <div class="t-row"><span>Subtotal</span><span id="tSub">$0</span></div>
