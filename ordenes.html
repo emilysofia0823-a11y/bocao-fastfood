@@ -20,10 +20,10 @@ header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:10p
 .count{background:var(--yellow);color:#000;font-size:0.68rem;font-weight:900;border-radius:50px;padding:1px 7px;margin-left:4px;}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;padding:18px 20px;}
 .card{background:var(--card);border:2px solid var(--border);border-radius:12px;overflow:hidden;}
-.card.pendiente,.card.en_cocina{border-color:var(--orange);}
-.card.listo{border-color:var(--green);}
+.card.pendiente{border-color:var(--orange);}
+.card.pagado{border-color:var(--green);}
 .card.en_camino{border-color:var(--blue);}
-.card.entregado,.card.pagado{border-color:#333;}
+.card.entregado{border-color:#333;}
 .card-head{padding:10px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .num{font-weight:900;font-size:0.9rem;color:var(--yellow);}
 .tipo-tag{font-size:0.7rem;font-weight:700;padding:3px 9px;border-radius:50px;}
@@ -52,9 +52,8 @@ header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:10p
 </header>
 <div class="filter-bar">
   <button class="fb active" id="fAll" onclick="setF('all')">Todos <span class="count" id="cAll">0</span></button>
-  <button class="fb" id="fActivos" onclick="setF('activos')">🔥 Activos <span class="count" id="cActivos">0</span></button>
-  <button class="fb" id="fListo" onclick="setF('listo')">✅ Listos <span class="count" id="cListo">0</span></button>
-  <button class="fb" id="fPagado" onclick="setF('pagado')">💰 Pagados <span class="count" id="cPagado">0</span></button>
+  <button class="fb" id="fActivos" onclick="setF('activos')">💰 Pendientes de cobro <span class="count" id="cActivos">0</span></button>
+  <button class="fb" id="fPagado" onclick="setF('pagado')">✅ Pagados <span class="count" id="cPagado">0</span></button>
   <button class="fb" id="fDom" onclick="setF('domicilio')">🛵 Domicilios <span class="count" id="cDom">0</span></button>
 </div>
 <div class="grid" id="grid"><div class="empty">Cargando...</div></div>
@@ -67,40 +66,37 @@ function logout(){sessionStorage.removeItem('bocao_sess');window.location.href='
 var todos=[], filtro='all';
 function fmt(n){return'$'+(n||0).toLocaleString('es-CO');}
 function esPagado(p){return !!p.metodoPago;}
-// Estado real = progreso de cocina/entrega. El pago es independiente y se muestra aparte.
+// Sin pantalla de cocina: el estado del pedido es solo pago + entrega (para domicilio).
 function cardEstadoKey(p){
   if(p.estadoEntrega==='entregado')return'entregado';
   if(p.estadoEntrega==='en_camino')return'en_camino';
-  if(p.listoCocina===true)return'listo';
-  return'en_cocina';
+  if(esPagado(p))return'pagado';
+  return'pendiente';
 }
 function estadoLabel(p){
-  var m={en_cocina:'En cocina',listo:'Listo',en_camino:'En camino',entregado:'Entregado'};
-  var base=m[cardEstadoKey(p)];
-  return base+(esPagado(p)?' · Pagado':' · Sin cobrar');
+  var m={pendiente:'Pendiente de cobro',pagado:'Pagado',en_camino:'En camino',entregado:'Entregado'};
+  return m[cardEstadoKey(p)];
 }
 function estadoClass(p){
   var k=cardEstadoKey(p);
-  if(k==='entregado'||k==='listo')return'elisto';
+  if(k==='entregado'||k==='pagado')return'elisto';
   if(k==='en_camino')return'epagado';
   return'epc';
 }
 window.setF=function(f){
   filtro=f;
-  ['All','Activos','Listo','Pagado','Dom'].forEach(function(k){document.getElementById('f'+k).classList.remove('active');});
-  var m={all:'All',activos:'Activos',listo:'Listo',pagado:'Pagado',domicilio:'Dom'};
+  ['All','Activos','Pagado','Dom'].forEach(function(k){document.getElementById('f'+k).classList.remove('active');});
+  var m={all:'All',activos:'Activos',pagado:'Pagado',domicilio:'Dom'};
   document.getElementById('f'+m[f]).classList.add('active');
   render();
 };
 function render(){
   var shown=todos;
-  if(filtro==='activos')shown=todos.filter(function(p){return !p.listoCocina;});
-  else if(filtro==='listo')shown=todos.filter(function(p){return p.listoCocina===true&&p.estadoEntrega!=='entregado';});
+  if(filtro==='activos')shown=todos.filter(function(p){return !esPagado(p);});
   else if(filtro==='pagado')shown=todos.filter(function(p){return esPagado(p);});
   else if(filtro==='domicilio')shown=todos.filter(function(p){return p.tipo==='domicilio';});
   document.getElementById('cAll').textContent=todos.length;
-  document.getElementById('cActivos').textContent=todos.filter(function(p){return !p.listoCocina;}).length;
-  document.getElementById('cListo').textContent=todos.filter(function(p){return p.listoCocina===true&&p.estadoEntrega!=='entregado';}).length;
+  document.getElementById('cActivos').textContent=todos.filter(function(p){return !esPagado(p);}).length;
   document.getElementById('cPagado').textContent=todos.filter(function(p){return esPagado(p);}).length;
   document.getElementById('cDom').textContent=todos.filter(function(p){return p.tipo==='domicilio';}).length;
   var g=document.getElementById('grid'); g.innerHTML='';
