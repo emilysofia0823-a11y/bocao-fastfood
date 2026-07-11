@@ -701,6 +701,26 @@ function imprimirComanda(){
   if(pedidoActual) enviarImpresionRemota('comanda',pedidoActual);
 }
 
+// ── CONTABLE: registrar automáticamente el ingreso en la caja vinculada ──
+function registrarIngresoEnCaja(p){
+  if(!window._addMovimientoAuto || !window._cajasPorMetodo) return;
+  var mLabels={efectivo:'Efectivo',nequi:'Nequi',transferencia:'Transferencia'};
+  var ref='Venta pedido #'+p.numero;
+  if(p.metodoPago==='mixto' && p.pagoMixto){
+    if(p.pagoMixto.efectivo>0){
+      var cEf=window._cajasPorMetodo.efectivo;
+      if(cEf) window._addMovimientoAuto({referencia:ref+' (efectivo)',clasificacion:'Venta POS',fecha:new Date().toISOString().slice(0,10),tipo:'ingreso',cajaId:cEf._id,cajaNombre:cEf.nombre,monto:p.pagoMixto.efectivo,registradoPor:p.cajero||'POS'});
+    }
+    if(p.pagoMixto.transferencia>0){
+      var cTr=window._cajasPorMetodo.transferencia;
+      if(cTr) window._addMovimientoAuto({referencia:ref+' (transferencia)',clasificacion:'Venta POS',fecha:new Date().toISOString().slice(0,10),tipo:'ingreso',cajaId:cTr._id,cajaNombre:cTr.nombre,monto:p.pagoMixto.transferencia,registradoPor:p.cajero||'POS'});
+    }
+  } else if(p.metodoPago){
+    var c=window._cajasPorMetodo[p.metodoPago];
+    if(c) window._addMovimientoAuto({referencia:ref,clasificacion:'Venta POS',fecha:new Date().toISOString().slice(0,10),tipo:'ingreso',cajaId:c._id,cajaNombre:c.nombre,monto:p.total,registradoPor:p.cajero||'POS'});
+  }
+}
+
 // ── IMPRESIÓN REMOTA (agente local en el restaurante) ──
 function enviarImpresionRemota(tipo,p){
   if(!window._addTrabajoImpresion){toast('⚠️ Sin conexión, no se envió a imprimir remoto');return;}
@@ -781,6 +801,7 @@ function confirmarPago(){
   if(window._db&&pedidoActual.firestoreId){
     window._updateDoc(window._doc(window._db,'pedidos',pedidoActual.firestoreId),updateData).catch(function(e){console.warn(e);});
   }
+  registrarIngresoEnCaja(pedidoActual);
   document.getElementById('pagoOverlay').classList.remove('open');
   mostrarFactura(pedidoActual);
 }
@@ -876,6 +897,16 @@ try {
   window._addTrabajoImpresion=function(job){
     addDoc(collection(db,'trabajos_impresion'),Object.assign({},job,{fechaCreacion:serverTimestamp()})).catch(function(e){console.warn('impresion',e);});
   };
+  // Contable: cajas vinculadas a métodos de pago, para acreditar ventas automáticamente
+  window._cajasPorMetodo={};
+  window._addMovimientoAuto=function(mov){
+    addDoc(collection(db,'movimientos_tesoreria'),Object.assign({},mov,{fechaCreacion:serverTimestamp()})).catch(function(e){console.warn('tesoreria',e);});
+  };
+  onSnapshot(collection(db,'cajas'),function(snap){
+    var m={};
+    snap.forEach(function(d){ var c=Object.assign({_id:d.id},d.data()); if(c.metodoPago) m[c.metodoPago]=c; });
+    window._cajasPorMetodo=m;
+  });
   // Inventario: mapa nombre→id para descontar, y decremento atómico
   window._invMap={};
   window._decInv=function(id,cant){ updateDoc(doc(db,'inventario',id),{cantidad:increment(-cant)}).catch(function(e){console.warn('inv',e);}); };
