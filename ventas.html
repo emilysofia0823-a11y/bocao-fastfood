@@ -162,7 +162,12 @@ function renderStats(data){
     total+=p.total||0;
     if(p.tipo==='domicilio'){domTotal+=p.costoEnvio||0;domCnt++;}
     else recCnt++;
-    if(p.metodoPago)pagoTotals[p.metodoPago]=(pagoTotals[p.metodoPago]||0)+(p.total||0);
+    if(p.metodoPago==='mixto'&&p.pagoMixto){
+      pagoTotals.efectivo=(pagoTotals.efectivo||0)+(p.pagoMixto.efectivo||0);
+      pagoTotals.transferencia=(pagoTotals.transferencia||0)+(p.pagoMixto.transferencia||0);
+    } else if(p.metodoPago){
+      pagoTotals[p.metodoPago]=(pagoTotals[p.metodoPago]||0)+(p.total||0);
+    }
   });
   document.getElementById('sTotal').textContent=fmt(total);
   document.getElementById('sSubLabel').textContent=fmt(total-domTotal)+' en productos';
@@ -195,12 +200,14 @@ function renderFacturas(){
     var estClass=p.metodoPago?'est-pagado':'est-pendiente';
     var estLabel=p.metodoPago?'Pagado':'Pendiente';
     var cli=p.cliente&&p.cliente.nombre?p.cliente.nombre:'Sin nombre';
-    var mLabels={efectivo:'💵 Efectivo',nequi:'📱 Nequi',transferencia:'🏦 Transferencia'};
+    var mLabels={efectivo:'💵 Efectivo',nequi:'📱 Nequi',transferencia:'🏦 Transferencia',mixto:'🔀 Mixto'};
+    var pagoDetalle=p.metodoPago?(mLabels[p.metodoPago]||p.metodoPago):'';
+    if(p.metodoPago==='mixto'&&p.pagoMixto)pagoDetalle+=' (Efectivo '+fmt(p.pagoMixto.efectivo)+' + Transf. '+fmt(p.pagoMixto.transferencia)+')';
     var itemsHTML=(p.items||[]).map(function(i){
       return'<div class="fi-row"><div><span class="fi-name">'+i.cantidad+'× '+i.nombre+'</span>'+(i.variante?'<span class="fi-var"> ('+i.variante+')</span>':'')+(i.notas?'<div class="fi-obs">'+i.notas+'</div>':'')+'</div><span class="fi-price">'+fmt(i.precio*i.cantidad)+'</span></div>';
     }).join('');
     var card=document.createElement('div'); card.className='fact-card';
-    card.innerHTML='<div class="fact-head" onclick="toggleFact(this)"><span class="fact-num">#'+p.numero+'</span>'+tTag+'<span class="fact-cliente">'+cli+'</span><span class="fact-hora">'+hora+'</span><span class="fact-total">'+fmt(p.total)+'</span><span class="fact-estado '+estClass+'">'+estLabel+'</span></div><div class="fact-body"><div class="fact-items">'+itemsHTML+'</div><div class="fact-totals"><div class="ft-row"><span>Subtotal</span><span>'+fmt(p.subtotal)+'</span></div>'+(p.costoEnvio>0?'<div class="ft-row"><span>Domicilio ('+((p.cliente&&p.cliente.barrio)||'')+')</span><span>'+fmt(p.costoEnvio)+'</span></div>':'')+'<div class="ft-row big"><span>TOTAL</span><span>'+fmt(p.total)+'</span></div>'+(p.metodoPago?'<div class="ft-row ft-pago"><span>Pagado con</span><span>'+(mLabels[p.metodoPago]||p.metodoPago)+'</span></div>':'')+'</div></div>';
+    card.innerHTML='<div class="fact-head" onclick="toggleFact(this)"><span class="fact-num">#'+p.numero+'</span>'+tTag+'<span class="fact-cliente">'+cli+'</span><span class="fact-hora">'+hora+'</span><span class="fact-total">'+fmt(p.total)+'</span><span class="fact-estado '+estClass+'">'+estLabel+'</span></div><div class="fact-body"><div class="fact-items">'+itemsHTML+'</div><div class="fact-totals"><div class="ft-row"><span>Subtotal</span><span>'+fmt(p.subtotal)+'</span></div>'+(p.descuentoValor>0?'<div class="ft-row"><span>Descuento ('+p.descuentoPct+'%)</span><span>-'+fmt(p.descuentoValor)+'</span></div>':'')+(p.costoEnvio>0?'<div class="ft-row"><span>Domicilio ('+((p.cliente&&p.cliente.barrio)||'')+')</span><span>'+fmt(p.costoEnvio)+'</span></div>':'')+'<div class="ft-row big"><span>TOTAL</span><span>'+fmt(p.total)+'</span></div>'+(p.metodoPago?'<div class="ft-row ft-pago"><span>Pagado con</span><span>'+pagoDetalle+'</span></div>':'')+'</div></div>';
     el.appendChild(card);
   });
 }
