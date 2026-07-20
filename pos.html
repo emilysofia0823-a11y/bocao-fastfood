@@ -232,6 +232,7 @@ header::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
   <div class="header-links">
     <button class="hlink" onclick="abrirCobrarPanel()" id="cobrarHeaderBtn" style="position:relative;">💰 Cobrar <span id="cobrarBadge" style="display:none;background:#22c55e;color:#000;font-size:0.65rem;font-weight:900;border-radius:50%;width:16px;height:16px;line-height:16px;text-align:center;position:absolute;top:-4px;right:-4px;"></span></button>
     <a class="hlink" href="ordenes.html" target="_blank">📋 Órdenes</a>
+    <a class="hlink" href="platos.html" target="_blank">🍽️ Platos</a>
   </div>
 </header>
 
@@ -278,6 +279,7 @@ header::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
           <label>Barrio / Zona *</label>
           <select id="cBarrio" onchange="onBarrio()">
             <option value="">-- Selecciona barrio --</option>
+            <option value="Mismo sitio (sin domicilio)|0">🏠 Mismo sitio (sin domicilio) — $0</option>
             <option value="Puerto Tambora|500">Puerto Tambora — $500</option>
             <option value="Puerto Armónica|1500">Puerto Armónica — $1.500</option>
             <option value="Puerto Millo|1500">Puerto Millo — $1.500</option>
@@ -416,57 +418,26 @@ header::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
 
 <script src="recetas.js"></script>
 <script>
-var MENU = {
-  hamburguesas:{label:'🍔 Hamburguesas',items:[
-    {id:'h1',name:'Clásica',desc:'Carne, tomate, americano, lechuga, tártara, salsa de la casa',variants:[{label:'Sin papas',price:13900},{label:'Con papas',price:17000}]},
-    {id:'h3',name:'Crunch Bacon',desc:'Carne, mozzarella, tocineta, cebolla apanada, tomate, americano, lechuga, tártara',variants:[{label:'Sin papas',price:17500},{label:'Con papas',price:20500}]},
-    {id:'h4',name:'Rompedieta',desc:'Doble carne, tocineta, cebolla caramelizada, mozzarella, tomate, americano, lechuga, tártara',variants:[{label:'Sin papas',price:20900},{label:'Con papas',price:23900}]}
-  ]},
-  perros:{label:'🌭 Perros Calientes',items:[
-    {id:'p1',name:'Sencillo',desc:'Salchicha, queso costeño, tártara, lechuga, gel de piña, papa chongo',variants:[{label:'Sin papas',price:9000},{label:'Con papas',price:11500}]},
-    {id:'p2',name:'Gratinado',desc:'Salchicha, queso costeño, mozzarella, tártara, lechuga, gel de piña, papa chongo',variants:[{label:'Sin papas',price:11500},{label:'Con papas',price:14000}]},
-    {id:'p3',name:'Gemelo',desc:'2 Salchichas, queso costeño, tártara, lechuga, gel de piña, papa chongo',variants:[{label:'Sin papas',price:13000},{label:'Con papas',price:15500}]},
-    {id:'p4',name:'Suizo Loco',desc:'½ Salchicha suiza, maíz, mozzarella, tocineta, queso costeño, tártara, lechuga, gel de piña',variants:[{label:'Sin papas',price:16900},{label:'Con papas',price:19500}]}
-  ]},
-  salchipapas:{label:'🍟 Salchipapas',items:[
-    {id:'s1',name:'Sencilla',desc:'Salchicha, queso costeño, tártara, lechuga, gel de piña, papa chongo',variants:[{label:'Normal',price:15900},{label:'Gratinada',price:18000}]},
-    {id:'s2',name:'Salchipollo',desc:'Salchicha, pollo, queso costeño, tártara, lechuga, gel de piña, papa chongo',variants:[{label:'Normal',price:19500},{label:'Gratinada',price:21900}]},
-    {id:'s4',name:"Boca'o (Para 2)",desc:'Salchicha, butifarra, suiza, queso costeño, mozzarella gratinado, maíz dulce, tártara, lechuga',variants:[{label:'Normal',price:26900},{label:'Con pollo o cerdo',price:31500}]},
-    {id:'s6',name:'Salvajada (Para 3)',desc:'Salchicha, pollo, cerdo, chorizo, queso costeño, tártara, lechuga, gel de piña, papa chongo',variants:[{label:'Normal',price:38000},{label:'Gratinada',price:42000}]},
-    {id:'s5',name:'Rompecintura (Para 4-5)',desc:'Salchicha, pollo, cerdo, chorizo, butifarra, queso costeño, tártara, lechuga, gel de piña',variants:[{label:'Normal',price:57500},{label:'Gratinada',price:63000}]}
-  ]},
-  combos:{label:'🎁 Combos',items:[
-    {id:'co2',name:'Clásico',desc:'1 Hamburguesa clásica, 1 papas fritas, 1 gaseosa cero 250ml',variants:[{label:'Precio',price:17500}]},
-    {id:'co6',name:'Triple Antojo',desc:'3 Perros sencillos, 3 gaseosas Postobón cero 250ml',variants:[{label:'Precio',price:28500}]},
-    {id:'co3',name:'Bacano',desc:'1 Salchipollo, 1 perro gemelo, 2 gaseosas Postobón cero 250ml',variants:[{label:'Precio',price:36400}]},
-    {id:'co4',name:'Doble Golpe',desc:'2 Hamburguesas clásicas, 2 papas fritas, 1 gaseosa 1.75lt',variants:[{label:'Precio',price:37000}]},
-    {id:'co7',name:'Dúo Crunch',desc:'2 Hamburguesas Crunch Bacon, 2 papas fritas, 2 gaseosas Postobón cero 250ml',variants:[{label:'Precio',price:41000}]},
-    {id:'co8',name:'Trio Salvaje',desc:'1 Salchipapa sencilla, 1 hamburguesa clásica, 1 perro sencillo gratinado, 3 gaseosas cero',variants:[{label:'Precio',price:42800}]},
-    {id:'co9',name:'Familiar',desc:'2 Hamburguesas clásicas con papas, 1 salchipollo, 2 perros sencillos, 1 gaseosa 1.75lt',variants:[{label:'Precio',price:70500}]}
-  ]},
-  adicionales:{label:'➕ Adicionales',items:[
-    {id:'a1',name:'Pollo / Cerdo',desc:'Proteína adicional',variants:[{label:'Precio',price:5000}]},
-    {id:'a2',name:'Papas Fritas',desc:'Porción de papas fritas',variants:[{label:'Precio',price:4000}]},
-    {id:'a3',name:'Queso Mozzarella',desc:'Queso mozzarella derretido',variants:[{label:'Precio',price:3000}]},
-    {id:'a4',name:'Maíz',desc:'Maíz dulce',variants:[{label:'Precio',price:2500}]},
-    {id:'a5',name:'Tocineta',desc:'Tocineta crujiente',variants:[{label:'Precio',price:3000}]},
-    {id:'a6',name:'Cebolla Caramelizada',desc:'Cebolla caramelizada',variants:[{label:'Precio',price:2500}]},
-    {id:'a9',name:'½ Suiza',desc:'Media salchicha suiza',variants:[{label:'Precio',price:3500}]}
-  ]},
-  bebidas:{label:'🥤 Bebidas',items:[
-    {id:'b1',name:'Postobón Cero',desc:'250ml',variants:[{label:'Precio',price:2500}]},
-    {id:'b2',name:'Coca Cola',desc:'400ml',variants:[{label:'Precio',price:4000}]},
-    {id:'b3',name:'Postobón',desc:'1.75 Lts.',variants:[{label:'Precio',price:7000}]}
-  ]},
-  promociones:{label:'🎉 Promociones',items:[
-    {id:'pr1',name:'Perro Sencillo Viernes',desc:'Solo los viernes',variants:[{label:'Precio',price:7000}],soloViernes:true},
-    {id:'pr2',name:'3 Perros Sencillos + Gaseosa',desc:'3 Perros sencillos, 1 gaseosa Postobón cero 250ml',variants:[{label:'Precio',price:24500}]},
-    {id:'pr3',name:'3 Butiperros + Gaseosa',desc:'3 Butiperros, 1 gaseosa Postobón',variants:[{label:'Precio',price:25900}]}
-  ]}
-};
+// El menú ahora se carga desde Firestore (colección "productos"), editable desde platos.html.
+var CAT_ORDEN=['🍔 Hamburguesas','🌭 Perros Calientes','🍟 Salchipapas','🎁 Combos','➕ Adicionales','🥤 Bebidas','🎉 Promociones'];
+var MENU = {};
+function construirMenuDesdeProductos(productos){
+  var m={};
+  productos.forEach(function(p){
+    if(!m[p.categoria]) m[p.categoria]={label:p.categoria,items:[]};
+    m[p.categoria].items.push({id:p.id,name:p.nombre,desc:p.desc||'',variants:p.variantes||[],soloViernes:!!p.soloViernes,orden:p.orden||0});
+  });
+  Object.keys(m).forEach(function(cat){
+    m[cat].items.sort(function(a,b){return(a.orden||0)-(b.orden||0);});
+  });
+  var ordered={};
+  CAT_ORDEN.forEach(function(cat){if(m[cat])ordered[cat]=m[cat];});
+  Object.keys(m).sort().forEach(function(cat){if(!ordered[cat])ordered[cat]=m[cat];});
+  return ordered;
+}
 
 // RECETAS y normIng se cargan desde recetas.js (fuente única de verdad)
-var cart=[], tipo='domicilio', activeCat='hamburguesas';
+var cart=[], tipo='domicilio', activeCat=null;
 var pendingItem=null, selectedVar=null, costoEnvio=0, modalQty=1;
 var pedidoNum=parseInt(localStorage.getItem('bocao_num')||'900');
 var pedidoActual=null, metodoPagoSel=null, descuentoPct=0;
@@ -517,6 +488,7 @@ function renderGrid(items){
 
 function onSearch(){
   var q=document.getElementById('searchInput').value.toLowerCase().trim();
+  if(!activeCat)return;
   if(!q){renderGrid(filtrarDisponibles(MENU[activeCat].items));return;}
   var all=[];Object.values(MENU).forEach(function(cat){filtrarDisponibles(cat.items).forEach(function(i){if(i.name.toLowerCase().includes(q)||i.desc.toLowerCase().includes(q))all.push(i);});});
   renderGrid(all);
@@ -610,7 +582,6 @@ function confirmar(){
   if(cart.length===0)return;
   if(tipo==='domicilio'){
     if(!document.getElementById('cNombre').value.trim()){toast('⚠️ Ingresa el nombre del cliente');return;}
-    if(!document.getElementById('cBarrio').value){toast('⚠️ Selecciona el barrio');return;}
   }
   var sub=cart.reduce(function(s,i){return s+i.price*i.qty;},0);
   var descuentoValor=Math.round(sub*(descuentoPct/100));
@@ -880,9 +851,17 @@ function renderCobrarList(){
 }
 
 // INIT
-renderCats();
-renderGrid(filtrarDisponibles(MENU[activeCat].items));
+document.getElementById('grid').innerHTML='<div class="no-results">Cargando menú...</div>';
 document.getElementById('pedidoNumVal').textContent=pedidoNum+1;
+window.refrescarMenu=function(productos){
+  MENU=construirMenuDesdeProductos(productos);
+  var keys=Object.keys(MENU);
+  if(keys.length===0){document.getElementById('grid').innerHTML='<div class="no-results">Sin productos. Ve a 🍽️ Platos para agregar.</div>';return;}
+  if(!activeCat||!MENU[activeCat]) activeCat=keys[0];
+  renderCats();
+  if(document.getElementById('searchInput').value.trim()) onSearch();
+  else renderGrid(filtrarDisponibles(MENU[activeCat].items));
+};
 </script>
 
 <script type="module">
@@ -902,6 +881,12 @@ try {
   window._addMovimientoAuto=function(mov){
     addDoc(collection(db,'movimientos_tesoreria'),Object.assign({},mov,{fechaCreacion:serverTimestamp()})).catch(function(e){console.warn('tesoreria',e);});
   };
+  // Menú (platos): se edita desde platos.html, se refleja aquí en tiempo real
+  onSnapshot(collection(db,'productos'),function(snap){
+    var productos=[];
+    snap.forEach(function(d){productos.push(d.data());});
+    if(window.refrescarMenu) window.refrescarMenu(productos);
+  });
   onSnapshot(collection(db,'cajas'),function(snap){
     var m={};
     snap.forEach(function(d){ var c=Object.assign({_id:d.id},d.data()); if(c.metodoPago) m[c.metodoPago]=c; });
