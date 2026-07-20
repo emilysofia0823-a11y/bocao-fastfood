@@ -112,12 +112,20 @@ function render(){
     var itemsHTML=(p.items||[]).map(function(i){return'<div class="isrow"><span>'+i.cantidad+'× '+i.nombre+'</span><span style="color:var(--yellow)">'+fmt(i.precio*i.cantidad)+'</span></div>';}).join('');
     var card=document.createElement('div');
     card.className='card '+cardEstadoKey(p);
+    var printBtn='<button class="del-x" onclick="reimprimirPedido(\''+p._id+'\')" title="Reimprimir factura" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;margin-left:6px;">🖨️</button>';
     var delBtn='<button class="del-x" onclick="eliminarPedido(\''+p._id+'\',\''+p.numero+'\')" title="Eliminar pedido" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;margin-left:6px;">🗑</button>';
-    card.innerHTML='<div class="card-head"><span class="num">#'+p.numero+'</span>'+tTag+'<span class="hora">'+hora+'</span><span class="estado-tag '+estadoClass(p)+'">'+estadoLabel(p)+'</span>'+delBtn+'</div><div class="card-body"><div class="cli">'+cliHTML+'</div><div class="items-sm">'+itemsHTML+'</div><div class="total-line"><span>Total</span><span>'+fmt(p.total)+'</span></div></div>';
+    card.innerHTML='<div class="card-head"><span class="num">#'+p.numero+'</span>'+tTag+'<span class="hora">'+hora+'</span><span class="estado-tag '+estadoClass(p)+'">'+estadoLabel(p)+'</span>'+printBtn+delBtn+'</div><div class="card-body"><div class="cli">'+cliHTML+'</div><div class="items-sm">'+itemsHTML+'</div><div class="total-line"><span>Total</span><span>'+fmt(p.total)+'</span></div></div>';
     g.appendChild(card);
   });
 }
 
+window.reimprimirPedido=function(id){
+  var pedido=todos.find(function(p){return p._id===id;});
+  if(!pedido)return;
+  if(!window._reimprimir){alert('⚠️ Sin conexión con la impresora remota.');return;}
+  window._reimprimir(pedido);
+  alert('🖨️ Factura #'+pedido.numero+' enviada a la impresora.');
+};
 window.eliminarPedido=function(id,numero){
   var motivo=prompt('¿Por qué vas a eliminar el pedido #'+numero+'? (obligatorio, ej: "pedido de prueba")');
   if(motivo===null)return;
@@ -135,6 +143,15 @@ import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, del
 var app=initializeApp({apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"});
 var db=getFirestore(app);
 window._db=db; window._doc=doc; window._updateDoc=updateDoc;
+// Reimpresión remota: encola un trabajo de tipo factura para el agente local
+window._reimprimir=function(p){
+  addDoc(collection(db,'trabajos_impresion'),{
+    tipo:'factura', numero:p.numero, tipoPedido:p.tipo, cajero:p.cajero,
+    cliente:p.cliente||{}, items:p.items||[], notasGenerales:p.notasGenerales||'',
+    subtotal:p.subtotal||0, costoEnvio:p.costoEnvio||0, total:p.total||0, metodoPago:p.metodoPago||null,
+    estado:'pendiente', fecha:new Date().toISOString(), fechaCreacion:serverTimestamp()
+  }).catch(function(e){alert('Error al reimprimir: '+e.message);});
+};
 // Elimina un pedido, pero primero deja registro de auditoría (qué era, quién y por qué)
 window._eliminarPedidoConMotivo=function(id,motivo,pedido){
   var registro=Object.assign({},pedido||{},{
