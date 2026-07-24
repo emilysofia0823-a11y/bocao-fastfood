@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Boca'o — Clientes / BocaPuntos</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#0a0a0a;--panel:#141414;--card:#1a1a1a;--border:#2a2a2a;--yellow:#FFD700;--red:#CC0000;--green:#22c55e;--blue:#3b82f6;--text:#f0f0f0;--muted:#666;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;}
+header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:10px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.logo{font-size:1rem;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1px;}
+.back{padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;text-decoration:none;}
+.back:hover{border-color:var(--yellow);color:var(--yellow);}
+.logout{margin-left:auto;padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;}
+.logout:hover{border-color:var(--red);color:var(--red);}
+
+.legend{display:flex;gap:8px;flex-wrap:wrap;padding:14px 20px;background:var(--panel);border-bottom:1px solid var(--border);}
+.leg-chip{background:var(--card);border:1px solid var(--border);border-radius:50px;padding:6px 14px;font-size:0.75rem;font-weight:700;color:var(--text);}
+.leg-chip b{color:var(--yellow);}
+
+.search-wrap{padding:14px 20px;}
+.search-wrap input{width:100%;max-width:400px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:9px 14px;border-radius:8px;font-size:0.85rem;outline:none;}
+.search-wrap input:focus{border-color:var(--yellow);}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;padding:0 20px 24px;}
+.cli-card{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:14px 16px;}
+.cli-dir{font-weight:800;font-size:0.9rem;color:var(--yellow);margin-bottom:2px;}
+.cli-nombre{font-size:0.8rem;color:var(--muted);margin-bottom:8px;}
+.cli-puntos{font-size:1.6rem;font-weight:900;color:var(--green);}
+.cli-puntos-lbl{font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+.cli-stats{font-size:0.72rem;color:var(--muted);margin-bottom:10px;line-height:1.6;}
+.cli-actions{display:flex;gap:8px;}
+.cli-actions button{flex:1;padding:8px;border-radius:8px;border:none;font-size:0.75rem;font-weight:700;cursor:pointer;}
+.btn-canje{background:var(--yellow);color:#000;}
+.btn-ajustar{background:var(--border);color:var(--text);}
+.empty{text-align:center;padding:50px 20px;color:var(--muted);grid-column:1/-1;}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;align-items:center;justify-content:center;padding:20px;}
+.overlay.open{display:flex;}
+.modal{background:var(--card);border:2px solid var(--yellow);border-radius:14px;padding:22px;width:100%;max-width:380px;}
+.modal h3{color:var(--yellow);font-size:1rem;font-weight:900;margin-bottom:6px;}
+.modal-sub{font-size:0.8rem;color:var(--muted);margin-bottom:14px;}
+.canje-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.canje-opt{background:var(--panel);border:2px solid var(--border);border-radius:9px;padding:11px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:border-color .2s;}
+.canje-opt:hover:not(.disabled){border-color:var(--yellow);}
+.canje-opt.disabled{opacity:.4;cursor:not-allowed;}
+.canje-opt span:first-child{font-weight:700;font-size:0.88rem;}
+.canje-opt span:last-child{color:var(--yellow);font-weight:800;}
+.adj-field{margin-bottom:12px;}
+.adj-field label{font-size:0.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:4px;}
+.adj-field input,.adj-field textarea{width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);padding:8px 11px;border-radius:8px;font-size:0.85rem;outline:none;font-family:inherit;}
+.adj-radios{display:flex;gap:10px;margin-bottom:12px;}
+.adj-radios label{font-size:0.8rem;display:flex;align-items:center;gap:5px;}
+.modal-actions{display:flex;gap:8px;}
+.mbtn-cancel{flex:1;background:var(--border);border:none;color:var(--muted);padding:11px;border-radius:8px;font-weight:700;cursor:pointer;}
+.mbtn-ok{flex:2;background:var(--yellow);border:none;color:#000;padding:11px;border-radius:8px;font-weight:800;cursor:pointer;}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="panel.html">← Panel</a>
+  <div class="logo">🏆 Clientes · BocaPuntos</div>
+  <button class="logout" onclick="logout()">Salir</button>
+</header>
+
+<div class="legend">
+  <span class="leg-chip">Cada <b>$5.000</b> en compras = <b>1 BocaPunto</b></span>
+  <span class="leg-chip"><b>10</b> pts = Gaseosa</span>
+  <span class="leg-chip"><b>20</b> pts = Papas</span>
+  <span class="leg-chip"><b>35</b> pts = Perro</span>
+  <span class="leg-chip"><b>60</b> pts = Hamburguesa</span>
+  <span class="leg-chip"><b>100</b> pts = Combo</span>
+</div>
+
+<div class="search-wrap">
+  <input type="text" id="searchInput" placeholder="🔍 Buscar por conjunto, torre, apto, nombre o teléfono..." oninput="render()"/>
+</div>
+
+<div class="grid" id="grid"><div class="empty">Cargando...</div></div>
+
+<!-- MODAL CANJE -->
+<div class="overlay" id="canjeOverlay">
+  <div class="modal">
+    <h3>🎁 Canjear BocaPuntos</h3>
+    <div class="modal-sub" id="canjeSub"></div>
+    <div class="canje-list" id="canjeList"></div>
+    <div class="modal-actions">
+      <button class="mbtn-cancel" onclick="cerrarCanje()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AJUSTE -->
+<div class="overlay" id="ajusteOverlay">
+  <div class="modal">
+    <h3>✏️ Ajustar puntos</h3>
+    <div class="modal-sub" id="ajusteSub"></div>
+    <div class="adj-radios">
+      <label><input type="radio" name="adjTipo" value="sumar" checked/> Sumar</label>
+      <label><input type="radio" name="adjTipo" value="restar"/> Restar</label>
+    </div>
+    <div class="adj-field">
+      <label>Cantidad de puntos</label>
+      <input type="number" id="ajCantidad" min="1" placeholder="Ej: 10"/>
+    </div>
+    <div class="adj-field">
+      <label>Motivo (obligatorio)</label>
+      <textarea id="ajMotivo" rows="2" placeholder="Ej: corrección por error de digitación"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="mbtn-cancel" onclick="cerrarAjuste()">Cancelar</button>
+      <button class="mbtn-ok" onclick="guardarAjuste()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var sess=JSON.parse(sessionStorage.getItem('bocao_sess')||'null');
+window.sess=sess;
+if(!sess||sess.role!=='admin'){window.location.href='/login.html';}
+function logout(){sessionStorage.removeItem('bocao_sess');window.location.href='/login.html';}
+
+var PREMIOS=[{puntos:10,nombre:'Gaseosa'},{puntos:20,nombre:'Papas'},{puntos:35,nombre:'Perro'},{puntos:60,nombre:'Hamburguesa'},{puntos:100,nombre:'Combo'}];
+var clientes=[], clienteActivo=null;
+
+function dirLabel(c){
+  if(c.conjunto||c.torre||c.apartamento){
+    var parts=[];
+    if(c.conjunto)parts.push(c.conjunto);
+    if(c.torre)parts.push('Torre '+c.torre);
+    if(c.apartamento)parts.push('Apto '+c.apartamento);
+    return parts.join(' · ');
+  }
+  return c.telefono?('Tel: '+c.telefono):'Sin identificar';
+}
+
+function render(){
+  var q=document.getElementById('searchInput').value.toLowerCase().trim();
+  var shown=clientes.filter(function(c){
+    if(!q)return true;
+    var hay=[c.conjunto,c.torre,c.apartamento,c.nombre,c.telefono].join(' ').toLowerCase();
+    return hay.indexOf(q)>=0;
+  });
+  shown.sort(function(a,b){return(b.puntos||0)-(a.puntos||0);});
+  var g=document.getElementById('grid'); g.innerHTML='';
+  if(shown.length===0){g.innerHTML='<div class="empty">Sin clientes registrados todavía. Los clientes aparecen aquí automáticamente cuando un pedido en el POS marca "Acumula BocaPuntos".</div>';return;}
+  shown.forEach(function(c){
+    var card=document.createElement('div'); card.className='cli-card';
+    card.innerHTML='<div class="cli-dir">'+dirLabel(c)+'</div>'+
+      '<div class="cli-nombre">'+(c.nombre||'—')+(c.telefono?' · '+c.telefono:'')+'</div>'+
+      '<div class="cli-puntos">'+(c.puntos||0)+'</div>'+
+      '<div class="cli-puntos-lbl">BocaPuntos disponibles</div>'+
+      '<div class="cli-stats">Total acumulado: '+(c.totalAcumulado||0)+' · Total canjeado: '+(c.totalCanjeado||0)+'</div>'+
+      '<div class="cli-actions"><button class="btn-canje" onclick="abrirCanje(\''+c._id+'\')">🎁 Canjear</button><button class="btn-ajustar" onclick="abrirAjuste(\''+c._id+'\')">✏️ Ajustar</button></div>';
+    g.appendChild(card);
+  });
+}
+
+window.abrirCanje=function(id){
+  clienteActivo=clientes.find(function(c){return c._id===id;});
+  if(!clienteActivo)return;
+  document.getElementById('canjeSub').textContent=dirLabel(clienteActivo)+' tiene '+(clienteActivo.puntos||0)+' BocaPuntos disponibles.';
+  var list=document.getElementById('canjeList'); list.innerHTML='';
+  PREMIOS.forEach(function(pr){
+    var disabled=(clienteActivo.puntos||0)<pr.puntos;
+    var d=document.createElement('div'); d.className='canje-opt'+(disabled?' disabled':'');
+    d.innerHTML='<span>'+pr.nombre+'</span><span>'+pr.puntos+' pts</span>';
+    if(!disabled) d.onclick=function(){confirmarCanje(pr);};
+    list.appendChild(d);
+  });
+  document.getElementById('canjeOverlay').classList.add('open');
+};
+window.cerrarCanje=function(){document.getElementById('canjeOverlay').classList.remove('open');clienteActivo=null;};
+function confirmarCanje(pr){
+  if(!confirm('¿Canjear '+pr.puntos+' puntos por "'+pr.nombre+'" para '+dirLabel(clienteActivo)+'?'))return;
+  window._canjearPuntos(clienteActivo,pr);
+  cerrarCanje();
+}
+
+window.abrirAjuste=function(id){
+  clienteActivo=clientes.find(function(c){return c._id===id;});
+  if(!clienteActivo)return;
+  document.getElementById('ajusteSub').textContent=dirLabel(clienteActivo)+' — balance actual: '+(clienteActivo.puntos||0)+' pts';
+  document.getElementById('ajCantidad').value='';
+  document.getElementById('ajMotivo').value='';
+  document.querySelector('input[name="adjTipo"][value="sumar"]').checked=true;
+  document.getElementById('ajusteOverlay').classList.add('open');
+};
+window.cerrarAjuste=function(){document.getElementById('ajusteOverlay').classList.remove('open');clienteActivo=null;};
+window.guardarAjuste=function(){
+  var cant=parseInt(document.getElementById('ajCantidad').value)||0;
+  var motivo=document.getElementById('ajMotivo').value.trim();
+  var tipo=document.querySelector('input[name="adjTipo"]:checked').value;
+  if(cant<=0){alert('Ingresa una cantidad de puntos válida.');return;}
+  if(!motivo){alert('El motivo es obligatorio para ajustar puntos.');return;}
+  window._ajustarPuntos(clienteActivo,tipo==='sumar'?cant:-cant,motivo);
+  cerrarAjuste();
+};
+
+window.refrescarClientes=function(lista){ clientes=lista; render(); };
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, increment, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+var app=initializeApp({apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"});
+var db=getFirestore(app);
+
+window._canjearPuntos=function(c,pr){
+  updateDoc(doc(db,'clientes_puntos',c._id),{
+    puntos:increment(-pr.puntos), totalCanjeado:increment(pr.puntos), fechaActualizacion:serverTimestamp()
+  }).catch(function(e){alert('Error: '+e.message);});
+  addDoc(collection(db,'puntos_movimientos'),{
+    clienteKey:c.clienteKey, conjunto:c.conjunto||'', torre:c.torre||'', apartamento:c.apartamento||'',
+    nombre:c.nombre||'', tipo:'canje', puntos:pr.puntos,
+    detalle:'Canje manual: '+pr.nombre,
+    fecha:new Date().toISOString(), registradoPor:(window.sess&&window.sess.nombre)||'admin', fechaCreacion:serverTimestamp()
+  }).catch(function(e){console.warn(e);});
+};
+
+window._ajustarPuntos=function(c,delta,motivo){
+  updateDoc(doc(db,'clientes_puntos',c._id),{
+    puntos:increment(delta),
+    fechaActualizacion:serverTimestamp()
+  }).catch(function(e){alert('Error: '+e.message);});
+  addDoc(collection(db,'puntos_movimientos'),{
+    clienteKey:c.clienteKey, conjunto:c.conjunto||'', torre:c.torre||'', apartamento:c.apartamento||'',
+    nombre:c.nombre||'', tipo:delta>=0?'ajuste_suma':'ajuste_resta', puntos:Math.abs(delta),
+    detalle:'Ajuste manual: '+motivo,
+    fecha:new Date().toISOString(), registradoPor:(window.sess&&window.sess.nombre)||'admin', fechaCreacion:serverTimestamp()
+  }).catch(function(e){console.warn(e);});
+};
+
+onSnapshot(collection(db,'clientes_puntos'),function(snap){
+  var lista=[];
+  snap.forEach(function(d){lista.push(Object.assign({_id:d.id},d.data()));});
+  if(window.refrescarClientes) window.refrescarClientes(lista);
+});
+</script>
+</body>
+</html>
