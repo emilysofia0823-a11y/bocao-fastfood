@@ -67,6 +67,20 @@ header::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
 .field input:focus,.field select:focus{border-color:var(--yellow);}
 .field select option{background:var(--card);}
 .envio-tag{font-size:0.7rem;color:var(--green);font-weight:700;margin-top:1px;}
+.puntos-box{padding-top:8px;margin-top:6px;border-top:1px dashed var(--border);}
+.puntos-check{display:flex;align-items:center;gap:6px;font-size:0.78rem;color:var(--text);font-weight:700;cursor:pointer;user-select:none;}
+.puntos-check input{width:auto;}
+.puntos-row2{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;}
+.puntos-balance{font-size:0.75rem;color:var(--green);font-weight:800;}
+.puntos-canje-link{background:none;border:1px solid var(--border);color:var(--yellow);font-size:0.7rem;font-weight:700;padding:4px 10px;border-radius:50px;cursor:pointer;}
+.puntos-canje-link:hover{border-color:var(--yellow);}
+.puntos-canje-tag{font-size:0.72rem;color:var(--yellow);font-weight:800;margin-top:4px;}
+.canje-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.canje-opt{background:var(--panel);border:2px solid var(--border);border-radius:9px;padding:11px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:border-color .2s;}
+.canje-opt:hover{border-color:var(--yellow);}
+.canje-opt.disabled{opacity:.4;cursor:not-allowed;}
+.canje-opt span:first-child{font-weight:700;font-size:0.88rem;}
+.canje-opt span:last-child{color:var(--yellow);font-weight:800;}
 
 .cart-list{flex:1;overflow-y:auto;padding:8px 14px;min-height:0;}
 .cart-empty{color:var(--muted);text-align:center;margin-top:24px;font-size:0.82rem;line-height:1.7;}
@@ -233,6 +247,7 @@ header::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
     <button class="hlink" onclick="abrirCobrarPanel()" id="cobrarHeaderBtn" style="position:relative;">💰 Cobrar <span id="cobrarBadge" style="display:none;background:#22c55e;color:#000;font-size:0.65rem;font-weight:900;border-radius:50%;width:16px;height:16px;line-height:16px;text-align:center;position:absolute;top:-4px;right:-4px;"></span></button>
     <a class="hlink" href="ordenes.html" target="_blank">📋 Órdenes</a>
     <a class="hlink" href="platos.html" target="_blank">🍽️ Platos</a>
+    <a class="hlink" href="clientes.html" target="_blank">🏆 Puntos</a>
   </div>
 </header>
 
@@ -297,6 +312,28 @@ header::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
           </select>
           <div class="envio-tag" id="envioTag"></div>
         </div>
+        <div class="fields-row">
+          <div class="field">
+            <label>Conjunto</label>
+            <input type="text" id="cConjunto" placeholder="Ej: Portal del Rio" oninput="onPuntosCamposChange()"/>
+          </div>
+          <div class="field">
+            <label>Torre</label>
+            <input type="text" id="cTorre" placeholder="Ej: 3" oninput="onPuntosCamposChange()"/>
+          </div>
+          <div class="field">
+            <label>Apartamento</label>
+            <input type="text" id="cApto" placeholder="Ej: 502" oninput="onPuntosCamposChange()"/>
+          </div>
+        </div>
+        <div class="puntos-box">
+          <label class="puntos-check"><input type="checkbox" id="cAcumulaPuntos" onchange="onPuntosCamposChange()"/> 🎯 Este pedido acumula BocaPuntos</label>
+          <div class="puntos-row2">
+            <span class="puntos-balance" id="puntosBalanceLabel"></span>
+            <button type="button" class="puntos-canje-link" onclick="abrirCanje()">🎁 Canjear premio</button>
+          </div>
+          <div class="puntos-canje-tag" id="puntosCanjeTag"></div>
+        </div>
       </div>
     </div>
 
@@ -344,6 +381,18 @@ header::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
     <div class="modal-actions">
       <button class="mbtn-cancel" onclick="closeModal()">Cancelar</button>
       <button class="mbtn-ok" onclick="agregarAlCarrito()">+ Agregar</button>
+    </div>
+  </div>
+</div>
+
+<!-- CANJE BOCAPUNTOS -->
+<div class="overlay" id="canjeOverlay">
+  <div class="modal">
+    <h3>🎁 Canjear BocaPuntos</h3>
+    <div style="font-size:0.8rem;color:var(--muted);margin-bottom:12px;" id="canjeBalanceInfo"></div>
+    <div class="canje-list" id="canjeList"></div>
+    <div class="modal-actions">
+      <button class="mbtn-cancel" onclick="cerrarCanje()">Cerrar</button>
     </div>
   </div>
 </div>
@@ -441,6 +490,14 @@ var cart=[], tipo='domicilio', activeCat=null;
 var pendingItem=null, selectedVar=null, costoEnvio=0, modalQty=1;
 var pedidoNum=parseInt(localStorage.getItem('bocao_num')||'900');
 var pedidoActual=null, metodoPagoSel=null, descuentoPct=0;
+var canjeSeleccionado=null; // {puntos,nombre} cuando se elige un premio en el carrito
+var PREMIOS_BOCAPUNTOS=[
+  {puntos:10,nombre:'Gaseosa'},
+  {puntos:20,nombre:'Papas'},
+  {puntos:35,nombre:'Perro'},
+  {puntos:60,nombre:'Hamburguesa'},
+  {puntos:100,nombre:'Combo'}
+];
 
 function nextNum(){ pedidoNum++; localStorage.setItem('bocao_num',pedidoNum); document.getElementById('pedidoNumVal').textContent=pedidoNum; }
 
@@ -458,6 +515,55 @@ function onBarrio(){
   if(v){var p=v.split('|');costoEnvio=parseInt(p[1]);tag.textContent='✓ Envío: $'+costoEnvio.toLocaleString('es-CO');document.getElementById('tEnvioRow').style.display='flex';}
   else{costoEnvio=0;tag.textContent='';document.getElementById('tEnvioRow').style.display='none';}
   calcTotals();
+}
+
+// ── BOCAPUNTOS: identifica al cliente por conjunto+torre+apto (o teléfono si no aplica) ──
+function normClave(s){ return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ').trim(); }
+function calcularClienteKey(){
+  var conj=normClave(document.getElementById('cConjunto').value);
+  var torre=normClave(document.getElementById('cTorre').value);
+  var apto=normClave(document.getElementById('cApto').value);
+  if(conj||torre||apto) return 'dir:'+conj+'|'+torre+'|'+apto;
+  var tel=normClave(document.getElementById('cTel').value);
+  if(tel) return 'tel:'+tel;
+  return null;
+}
+function balanceClienteActual(){
+  var key=calcularClienteKey();
+  if(!key||!window._puntosMap) return 0;
+  var c=window._puntosMap[key];
+  return c?(c.puntos||0):0;
+}
+function onPuntosCamposChange(){
+  var acumula=document.getElementById('cAcumulaPuntos').checked;
+  var key=calcularClienteKey();
+  var lbl=document.getElementById('puntosBalanceLabel');
+  if(!key){lbl.textContent=acumula?'Ingresa conjunto/torre/apto o teléfono para vincular puntos':'';return;}
+  var bal=balanceClienteActual();
+  lbl.textContent='Puntos actuales: '+bal;
+}
+function abrirCanje(){
+  var key=calcularClienteKey();
+  if(!key){toast('⚠️ Ingresa conjunto/torre/apto o teléfono primero');return;}
+  var bal=balanceClienteActual();
+  document.getElementById('canjeBalanceInfo').textContent='Este cliente tiene '+bal+' BocaPuntos disponibles.';
+  var list=document.getElementById('canjeList'); list.innerHTML='';
+  PREMIOS_BOCAPUNTOS.forEach(function(pr){
+    var disabled=bal<pr.puntos;
+    var d=document.createElement('div'); d.className='canje-opt'+(disabled?' disabled':'');
+    d.innerHTML='<span>'+pr.nombre+'</span><span>'+pr.puntos+' pts</span>';
+    if(!disabled) d.onclick=function(){seleccionarCanje(pr);};
+    list.appendChild(d);
+  });
+  document.getElementById('canjeOverlay').classList.add('open');
+}
+function cerrarCanje(){document.getElementById('canjeOverlay').classList.remove('open');}
+function seleccionarCanje(pr){
+  if(canjeSeleccionado){toast('⚠️ Ya hay un premio canjeado en este pedido');cerrarCanje();return;}
+  canjeSeleccionado=pr;
+  cart.push({key:'canje_'+pr.nombre+'_'+Date.now(),id:null,name:'🎁 '+pr.nombre+' (canje BocaPuntos)',variant:'Precio',price:0,qty:1,notas:'',esCanje:true});
+  document.getElementById('puntosCanjeTag').textContent='🎁 Premio canjeado: '+pr.nombre+' (-'+pr.puntos+' pts)';
+  cerrarCanje(); renderCart(); toast('🎁 '+pr.nombre+' agregado gratis');
 }
 
 function esViernes(){ return new Date().getDay()===5; }
@@ -543,9 +649,12 @@ function renderCart(){
   document.getElementById('confirmBtn').disabled=false; calcTotals();
 }
 
-function chgQty(i,d){cart[i].qty+=d;if(cart[i].qty<=0)cart.splice(i,1);renderCart();}
-function delItem(i){cart.splice(i,1);renderCart();}
-function clearAll(){if(cart.length>0&&!confirm('¿Limpiar pedido?'))return;cart=[];costoEnvio=0;descuentoPct=0;document.getElementById('cBarrio').value='';document.getElementById('envioTag').textContent='';document.getElementById('tEnvioRow').style.display='none';document.getElementById('descuentoInput').value='';renderCart();}
+function chgQty(i,d){if(cart[i].esCanje)return;cart[i].qty+=d;if(cart[i].qty<=0)cart.splice(i,1);renderCart();}
+function delItem(i){
+  if(cart[i].esCanje){canjeSeleccionado=null;document.getElementById('puntosCanjeTag').textContent='';}
+  cart.splice(i,1);renderCart();
+}
+function clearAll(){if(cart.length>0&&!confirm('¿Limpiar pedido?'))return;cart=[];costoEnvio=0;descuentoPct=0;canjeSeleccionado=null;document.getElementById('puntosCanjeTag').textContent='';document.getElementById('cBarrio').value='';document.getElementById('envioTag').textContent='';document.getElementById('tEnvioRow').style.display='none';document.getElementById('descuentoInput').value='';renderCart();}
 
 function onDescuento(){
   var v=parseFloat(document.getElementById('descuentoInput').value)||0;
@@ -586,6 +695,17 @@ function confirmar(){
   var sub=cart.reduce(function(s,i){return s+i.price*i.qty;},0);
   var descuentoValor=Math.round(sub*(descuentoPct/100));
   var bv=document.getElementById('cBarrio').value, bp=bv?bv.split('|'):[];
+  var acumula=document.getElementById('cAcumulaPuntos').checked;
+  var clienteKey=calcularClienteKey();
+  var puntosGanados=(acumula&&clienteKey)?Math.floor((sub-descuentoValor)/5000):0;
+  var bocaPuntos=clienteKey?{
+    clienteKey:clienteKey,
+    conjunto:document.getElementById('cConjunto').value.trim(),
+    torre:document.getElementById('cTorre').value.trim(),
+    apartamento:document.getElementById('cApto').value.trim(),
+    acumula:acumula, ganados:puntosGanados,
+    canje:canjeSeleccionado?{producto:canjeSeleccionado.nombre,puntos:canjeSeleccionado.puntos}:null
+  }:null;
   nextNum();
   var pedido={
     numero:pedidoNum, tipo:tipo, estadoEntrega:'pendiente', cajero:'Kelly',
@@ -593,7 +713,7 @@ function confirmar(){
     items:cart.map(function(i){return{nombre:i.name,variante:i.variant==='Precio'?'':i.variant,precio:i.price,cantidad:i.qty,notas:i.notas};}),
     notasGenerales:document.getElementById('notasGen').value.trim(),
     subtotal:sub, descuentoPct:descuentoPct, descuentoValor:descuentoValor, costoEnvio:costoEnvio, total:sub-descuentoValor+costoEnvio,
-    metodoPago:null, fecha:new Date().toISOString()
+    metodoPago:null, fecha:new Date().toISOString(), bocaPuntos:bocaPuntos
   };
   pedidoActual=pedido;
   var itemsParaDescontar=cart.slice();
@@ -602,6 +722,7 @@ function confirmar(){
       .then(function(ref){pedidoActual.firestoreId=ref.id;console.log('Firebase:',ref.id);})
       .catch(function(e){console.warn(e);});
   }
+  if(bocaPuntos&&(bocaPuntos.acumula||bocaPuntos.canje)) procesarPuntosCliente(pedido);
   descontarInventario(itemsParaDescontar);
   // Sin pantalla de cocina: la comanda se imprime sola al confirmar el pedido.
   enviarImpresionRemota('comanda',pedido);
@@ -612,6 +733,11 @@ function confirmar(){
 }
 
 // ── DESCUENTO AUTOMÁTICO DE INVENTARIO ──
+function procesarPuntosCliente(pedido){
+  if(!window._procesarPuntos||!pedido.bocaPuntos) return;
+  window._procesarPuntos(pedido);
+}
+
 function descontarInventario(items){
   if(!window._invMap || !window._decInv) return; // inventario no cargado aún
   var ded={}; // normNombre -> cantidad total
@@ -635,9 +761,11 @@ function descontarInventario(items){
 }
 
 function limpiarCliente(){
-  ['cNombre','cTel','cDir'].forEach(function(id){document.getElementById(id).value='';});
+  ['cNombre','cTel','cDir','cConjunto','cTorre','cApto'].forEach(function(id){document.getElementById(id).value='';});
   document.getElementById('cBarrio').value='';document.getElementById('envioTag').textContent='';document.getElementById('tEnvioRow').style.display='none';document.getElementById('notasGen').value='';costoEnvio=0;
   descuentoPct=0;document.getElementById('descuentoInput').value='';document.getElementById('descuentoValorLabel').textContent='';
+  document.getElementById('cAcumulaPuntos').checked=false;document.getElementById('puntosBalanceLabel').textContent='';document.getElementById('puntosCanjeTag').textContent='';
+  canjeSeleccionado=null;
 }
 
 function buildComandaHTML(p){
@@ -880,6 +1008,51 @@ try {
   window._cajasPorMetodo={};
   window._addMovimientoAuto=function(mov){
     addDoc(collection(db,'movimientos_tesoreria'),Object.assign({},mov,{fechaCreacion:serverTimestamp()})).catch(function(e){console.warn('tesoreria',e);});
+  };
+  // BocaPuntos: fidelidad por cliente (conjunto+torre+apto, o teléfono si no aplica)
+  window._puntosMap={};
+  onSnapshot(collection(db,'clientes_puntos'),function(snap){
+    var m={};
+    snap.forEach(function(d){ var c=Object.assign({_id:d.id},d.data()); if(c.clienteKey) m[c.clienteKey]=c; });
+    window._puntosMap=m;
+  });
+  window._procesarPuntos=function(pedido){
+    var bp=pedido.bocaPuntos; if(!bp||!bp.clienteKey) return;
+    var key=bp.clienteKey;
+    var ganados=bp.acumula?(bp.ganados||0):0;
+    var canjePuntos=bp.canje?bp.canje.puntos:0;
+    var delta=ganados-canjePuntos;
+    var existente=window._puntosMap[key];
+    var datosCliente={
+      clienteKey:key, conjunto:bp.conjunto||'', torre:bp.torre||'', apartamento:bp.apartamento||'',
+      nombre:(pedido.cliente&&pedido.cliente.nombre)||'', telefono:(pedido.cliente&&pedido.cliente.telefono)||'',
+      fechaActualizacion:serverTimestamp()
+    };
+    if(existente){
+      updateDoc(doc(db,'clientes_puntos',existente._id),Object.assign({},datosCliente,{
+        puntos:increment(delta), totalAcumulado:increment(ganados), totalCanjeado:increment(canjePuntos)
+      })).catch(function(e){console.warn('puntos',e);});
+    } else {
+      addDoc(collection(db,'clientes_puntos'),Object.assign({},datosCliente,{
+        puntos:Math.max(delta,0), totalAcumulado:ganados, totalCanjeado:canjePuntos, fechaCreacion:serverTimestamp()
+      })).catch(function(e){console.warn('puntos',e);});
+    }
+    if(ganados>0){
+      addDoc(collection(db,'puntos_movimientos'),{
+        clienteKey:key, conjunto:bp.conjunto||'', torre:bp.torre||'', apartamento:bp.apartamento||'',
+        nombre:(pedido.cliente&&pedido.cliente.nombre)||'', tipo:'acumulacion', puntos:ganados,
+        detalle:'Pedido #'+pedido.numero+' — $'+(pedido.total||0).toLocaleString('es-CO'),
+        fecha:new Date().toISOString(), registradoPor:pedido.cajero||'POS', fechaCreacion:serverTimestamp()
+      }).catch(function(e){console.warn('puntos-mov',e);});
+    }
+    if(canjePuntos>0){
+      addDoc(collection(db,'puntos_movimientos'),{
+        clienteKey:key, conjunto:bp.conjunto||'', torre:bp.torre||'', apartamento:bp.apartamento||'',
+        nombre:(pedido.cliente&&pedido.cliente.nombre)||'', tipo:'canje', puntos:canjePuntos,
+        detalle:'Canje: '+bp.canje.producto+' (Pedido #'+pedido.numero+')',
+        fecha:new Date().toISOString(), registradoPor:pedido.cajero||'POS', fechaCreacion:serverTimestamp()
+      }).catch(function(e){console.warn('puntos-mov',e);});
+    }
   };
   // Menú (platos): se edita desde platos.html, se refleja aquí en tiempo real
   onSnapshot(collection(db,'productos'),function(snap){
