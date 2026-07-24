@@ -499,7 +499,18 @@ var PREMIOS_BOCAPUNTOS=[
   {puntos:100,nombre:'Combo'}
 ];
 
-function nextNum(){ pedidoNum++; localStorage.setItem('bocao_num',pedidoNum); document.getElementById('pedidoNumVal').textContent=pedidoNum; }
+// El número real y único de cada pedido se obtiene de Firestore (transacción atómica),
+// nunca se repite aunque se tomen pedidos desde varios dispositivos a la vez.
+// localStorage queda solo como respaldo si no hay conexión con Firestore.
+var confirmando=false;
+function nextNumLocalFallback(){ pedidoNum++; localStorage.setItem('bocao_num',pedidoNum); return pedidoNum; }
+async function obtenerSiguienteNumero(){
+  if(window._nextNumero){
+    try{ return await window._nextNumero(); }
+    catch(e){ console.warn('Fallo numeración remota, usando respaldo local:',e); return nextNumLocalFallback(); }
+  }
+  return nextNumLocalFallback();
+}
 
 function setTipo(t){
   tipo=t;
@@ -687,49 +698,60 @@ function toggleClienteInfo(){
   document.getElementById('clienteArrow').textContent=clienteColapsado?'▶':'▼';
 }
 
-function confirmar(){
+async function confirmar(){
   if(cart.length===0)return;
+  if(confirmando)return;
   if(tipo==='domicilio'){
     if(!document.getElementById('cNombre').value.trim()){toast('⚠️ Ingresa el nombre del cliente');return;}
   }
-  var sub=cart.reduce(function(s,i){return s+i.price*i.qty;},0);
-  var descuentoValor=Math.round(sub*(descuentoPct/100));
-  var bv=document.getElementById('cBarrio').value, bp=bv?bv.split('|'):[];
-  var acumula=document.getElementById('cAcumulaPuntos').checked;
-  var clienteKey=calcularClienteKey();
-  var puntosGanados=(acumula&&clienteKey)?Math.floor((sub-descuentoValor)/5000):0;
-  var bocaPuntos=clienteKey?{
-    clienteKey:clienteKey,
-    conjunto:document.getElementById('cConjunto').value.trim(),
-    torre:document.getElementById('cTorre').value.trim(),
-    apartamento:document.getElementById('cApto').value.trim(),
-    acumula:acumula, ganados:puntosGanados,
-    canje:canjeSeleccionado?{producto:canjeSeleccionado.nombre,puntos:canjeSeleccionado.puntos}:null
-  }:null;
-  nextNum();
-  var pedido={
-    numero:pedidoNum, tipo:tipo, estadoEntrega:'pendiente', cajero:'Kelly',
-    cliente:{nombre:document.getElementById('cNombre').value.trim(),telefono:document.getElementById('cTel').value.trim(),direccion:document.getElementById('cDir').value.trim(),barrio:bp[0]||'',costoEnvio:costoEnvio},
-    items:cart.map(function(i){return{nombre:i.name,variante:i.variant==='Precio'?'':i.variant,precio:i.price,cantidad:i.qty,notas:i.notas};}),
-    notasGenerales:document.getElementById('notasGen').value.trim(),
-    subtotal:sub, descuentoPct:descuentoPct, descuentoValor:descuentoValor, costoEnvio:costoEnvio, total:sub-descuentoValor+costoEnvio,
-    metodoPago:null, fecha:new Date().toISOString(), bocaPuntos:bocaPuntos
-  };
-  pedidoActual=pedido;
-  var itemsParaDescontar=cart.slice();
-  if(window._db){
-    window._addDoc(window._collection(window._db,'pedidos'),Object.assign({},pedido,{fechaCreacion:window._serverTimestamp()}))
-      .then(function(ref){pedidoActual.firestoreId=ref.id;console.log('Firebase:',ref.id);})
-      .catch(function(e){console.warn(e);});
+  confirmando=true;
+  document.getElementById('confirmBtn').disabled=true;
+  document.getElementById('confirmBtn').textContent='Guardando...';
+  try{
+    var sub=cart.reduce(function(s,i){return s+i.price*i.qty;},0);
+    var descuentoValor=Math.round(sub*(descuentoPct/100));
+    var bv=document.getElementById('cBarrio').value, bp=bv?bv.split('|'):[];
+    var acumula=document.getElementById('cAcumulaPuntos').checked;
+    var clienteKey=calcularClienteKey();
+    var puntosGanados=(acumula&&clienteKey)?Math.floor((sub-descuentoValor)/5000):0;
+    var bocaPuntos=clienteKey?{
+      clienteKey:clienteKey,
+      conjunto:document.getElementById('cConjunto').value.trim(),
+      torre:document.getElementById('cTorre').value.trim(),
+      apartamento:document.getElementById('cApto').value.trim(),
+      acumula:acumula, ganados:puntosGanados,
+      canje:canjeSeleccionado?{producto:canjeSeleccionado.nombre,puntos:canjeSeleccionado.puntos}:null
+    }:null;
+    var numeroAsignado=await obtenerSiguienteNumero();
+    pedidoNum=numeroAsignado;
+    document.getElementById('pedidoNumVal').textContent=numeroAsignado+1;
+    var pedido={
+      numero:numeroAsignado, tipo:tipo, estadoEntrega:'pendiente', cajero:'Kelly',
+      cliente:{nombre:document.getElementById('cNombre').value.trim(),telefono:document.getElementById('cTel').value.trim(),direccion:document.getElementById('cDir').value.trim(),barrio:bp[0]||'',costoEnvio:costoEnvio},
+      items:cart.map(function(i){return{nombre:i.name,variante:i.variant==='Precio'?'':i.variant,precio:i.price,cantidad:i.qty,notas:i.notas};}),
+      notasGenerales:document.getElementById('notasGen').value.trim(),
+      subtotal:sub, descuentoPct:descuentoPct, descuentoValor:descuentoValor, costoEnvio:costoEnvio, total:sub-descuentoValor+costoEnvio,
+      metodoPago:null, fecha:new Date().toISOString(), bocaPuntos:bocaPuntos
+    };
+    pedidoActual=pedido;
+    var itemsParaDescontar=cart.slice();
+    if(window._db){
+      window._addDoc(window._collection(window._db,'pedidos'),Object.assign({},pedido,{fechaCreacion:window._serverTimestamp()}))
+        .then(function(ref){pedidoActual.firestoreId=ref.id;console.log('Firebase:',ref.id);})
+        .catch(function(e){console.warn(e);});
+    }
+    if(bocaPuntos&&(bocaPuntos.acumula||bocaPuntos.canje)) procesarPuntosCliente(pedido);
+    descontarInventario(itemsParaDescontar);
+    // Sin pantalla de cocina: la comanda se imprime sola al confirmar el pedido.
+    enviarImpresionRemota('comanda',pedido);
+    mostrarComanda(pedido);
+    limpiarCliente();
+    cart=[];
+    renderCart();
+  } finally {
+    confirmando=false;
+    document.getElementById('confirmBtn').textContent='Confirmar Pedido →';
   }
-  if(bocaPuntos&&(bocaPuntos.acumula||bocaPuntos.canje)) procesarPuntosCliente(pedido);
-  descontarInventario(itemsParaDescontar);
-  // Sin pantalla de cocina: la comanda se imprime sola al confirmar el pedido.
-  enviarImpresionRemota('comanda',pedido);
-  mostrarComanda(pedido);
-  limpiarCliente();
-  cart=[];
-  renderCart();
 }
 
 // ── DESCUENTO AUTOMÁTICO DE INVENTARIO ──
@@ -994,12 +1016,23 @@ window.refrescarMenu=function(productos){
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, updateDoc, serverTimestamp, query, where, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, serverTimestamp, query, where, onSnapshot, increment, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 try {
   var app=initializeApp({apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"});
   var db=getFirestore(app);
   window._db=db; window._addDoc=addDoc; window._collection=collection;
   window._doc=doc; window._updateDoc=updateDoc; window._serverTimestamp=serverTimestamp;
+  // Numeración de pedidos: contador atómico en Firestore, único sin importar el dispositivo
+  window._nextNumero=function(){
+    var ref=doc(db,'contadores','pedidos');
+    return runTransaction(db,async function(tx){
+      var snap=await tx.get(ref);
+      var actual=snap.exists()?(snap.data().ultimo||0):0;
+      var siguiente=actual+1;
+      tx.set(ref,{ultimo:siguiente},{merge:true});
+      return siguiente;
+    });
+  };
   // Impresión remota: encola un trabajo para que el agente local lo imprima
   window._addTrabajoImpresion=function(job){
     addDoc(collection(db,'trabajos_impresion'),Object.assign({},job,{fechaCreacion:serverTimestamp()})).catch(function(e){console.warn('impresion',e);});
