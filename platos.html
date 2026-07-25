@@ -4,31 +4,36 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Boca'o — Platos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-:root{--bg:#0a0a0a;--panel:#141414;--card:#1a1a1a;--border:#2a2a2a;--yellow:#FFD700;--red:#CC0000;--green:#22c55e;--blue:#3b82f6;--text:#f0f0f0;--muted:#666;}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;}
-header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:10px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-.logo{font-size:1rem;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1px;}
+:root{--bg:#0d0b09;--panel:#171310;--card:#1f1a15;--border:#332a1f;--yellow:#E3B341;--red:#A5293B;--green:#4FA875;--blue:#5B84A8;--text:#F3ECE2;--muted:#8C8172;}
+body{background:var(--bg);color:var(--text);font-family:'Manrope',Arial,sans-serif;min-height:100vh;}
+header{background:var(--panel);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:relative;}
+header::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,var(--yellow),transparent 70%);}
+.logo{font-family:'Fraunces',serif;font-style:italic;font-weight:700;font-size:1.05rem;color:var(--yellow);letter-spacing:.2px;}
 .back{padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;text-decoration:none;}
 .back:hover{border-color:var(--yellow);color:var(--yellow);}
-.addbtn{margin-left:auto;padding:8px 18px;border-radius:8px;border:none;background:var(--yellow);color:#000;font-size:0.8rem;font-weight:900;cursor:pointer;}
+.addbtn{margin-left:auto;padding:8px 18px;border-radius:9px;border:none;background:var(--yellow);color:#1a1408;font-size:0.8rem;font-weight:800;cursor:pointer;}
 .logout{padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;}
 .logout:hover{border-color:var(--red);color:var(--red);}
 .wrap{padding:20px;}
 .cat-block{margin-bottom:26px;}
-.cat-title{font-size:0.95rem;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--border);}
+.cat-title{font-family:'Fraunces',serif;font-size:1.05rem;font-weight:700;color:var(--yellow);letter-spacing:.2px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
 .items-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
-.plato-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;}
+.plato-card{background:linear-gradient(160deg,var(--card),var(--panel));border:1px solid var(--border);border-radius:14px;padding:14px;transition:box-shadow .2s;}
+.plato-card:hover{box-shadow:0 10px 22px rgba(0,0,0,.3);}
 .plato-name{font-weight:800;font-size:0.92rem;margin-bottom:4px;}
 .plato-desc{font-size:0.75rem;color:var(--muted);line-height:1.4;margin-bottom:8px;min-height:18px;}
 .plato-vars{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
 .pv-chip{background:var(--panel);color:var(--yellow);font-size:0.72rem;font-weight:700;padding:3px 9px;border-radius:50px;border:1px solid var(--border);}
-.viernes-tag{font-size:0.68rem;color:#f97316;font-weight:800;margin-bottom:8px;}
+.viernes-tag{font-size:0.68rem;color:#C9793E;font-weight:800;margin-bottom:8px;}
 .plato-actions{display:flex;gap:8px;}
 .plato-actions button{flex:1;padding:7px;border-radius:7px;border:none;font-size:0.75rem;font-weight:700;cursor:pointer;}
 .btn-edit{background:var(--blue);color:#fff;}
-.btn-del{background:#3a1414;color:#f87171;}
+.btn-del{background:#2b1219;color:#D97A87;}
 .empty{text-align:center;padding:50px 20px;color:var(--muted);}
 
 /* MODAL */
@@ -52,7 +57,7 @@ header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:10p
 .add-var-btn:hover{border-color:var(--yellow);color:var(--yellow);}
 .modal-actions{display:flex;gap:8px;}
 .mbtn-cancel{flex:1;background:var(--border);border:none;color:var(--muted);padding:11px;border-radius:8px;font-weight:700;cursor:pointer;}
-.mbtn-ok{flex:2;background:var(--yellow);border:none;color:#000;padding:11px;border-radius:8px;font-weight:800;cursor:pointer;}
+.mbtn-ok{flex:2;background:var(--yellow);border:none;color:#1a1408;padding:11px;border-radius:8px;font-weight:800;cursor:pointer;}
 .datalist-hint{font-size:0.68rem;color:var(--muted);margin-top:3px;}
 </style>
 </head>
