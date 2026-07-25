@@ -60,6 +60,13 @@ header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:10p
 <div class="wrap">
   <div id="estadoBanner"></div>
 
+  <!-- RESUMEN DE HOY (siempre visible, no requiere turno abierto) -->
+  <div class="box">
+    <h2>💰 Cuánto hay hoy por método de pago</h2>
+    <div class="metodos-grid" id="resumenHoyGrid"></div>
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:4px;">Suma de todas las ventas cobradas hoy, sin importar si hay un turno abierto o no.</div>
+  </div>
+
   <!-- ABRIR TURNO -->
   <div class="box" id="boxAbrir" style="display:none;">
     <h2>Abrir turno</h2>
@@ -122,9 +129,26 @@ function calcularVentas(desde){
   return v;
 }
 
+function renderResumenHoy(){
+  var hoy=new Date(); hoy.setHours(0,0,0,0);
+  var ventas=calcularVentas(hoy.toISOString());
+  var metodos=[
+    {key:'efectivo',label:'💵 Efectivo'},
+    {key:'transferencia',label:'🏦 Bancolombia'},
+    {key:'nequi',label:'📱 Nequi'}
+  ];
+  var g=document.getElementById('resumenHoyGrid'); g.innerHTML='';
+  metodos.forEach(function(m){
+    var box=document.createElement('div'); box.className='metodo-box';
+    box.innerHTML='<label>'+m.label+'</label><div style="font-size:1.15rem;font-weight:900;color:var(--yellow);padding:6px 0;">'+fmt(ventas[m.key]||0)+'</div>';
+    g.appendChild(box);
+  });
+}
+
 function render(){
   var banner=document.getElementById('estadoBanner');
   turnoActivo=turnos.find(function(t){return t.estado==='abierto';})||null;
+  renderResumenHoy();
 
   if(turnoActivo){
     banner.innerHTML='<div class="estado-banner abierto">🟢 Turno abierto — Responsable: '+turnoActivo.cajero+' · desde '+new Date(turnoActivo.fechaApertura).toLocaleString('es-CO')+'</div>';
@@ -237,7 +261,7 @@ function renderHistorial(){
 }
 
 window.refrescarTurnos=function(lista){ turnos=lista; render(); };
-window.refrescarPedidosTurno=function(lista){ pedidos=lista; if(turnoActivo) renderCerrarGrid(); };
+window.refrescarPedidosTurno=function(lista){ pedidos=lista; renderResumenHoy(); if(turnoActivo) renderCerrarGrid(); };
 </script>
 
 <script type="module">
