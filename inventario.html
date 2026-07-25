@@ -6,16 +6,20 @@
 <title>Boca'o — Inventario</title>
 <script>(function(){var s=JSON.parse(sessionStorage.getItem('bocao_sess')||'null');if(!s||s.role!=='admin'){window.location.href='/login.html';}})();</script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-:root{--bg:#0a0a0a;--panel:#141414;--card:#1a1a1a;--border:#2a2a2a;--yellow:#FFD700;--red:#CC0000;--green:#22c55e;--blue:#3b82f6;--orange:#f97316;--text:#f0f0f0;--muted:#666;}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;}
-header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:10px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-.logo{font-size:1rem;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1px;}
+:root{--bg:#0d0b09;--panel:#171310;--card:#1f1a15;--border:#332a1f;--yellow:#E3B341;--red:#A5293B;--green:#4FA875;--blue:#5B84A8;--orange:#C9793E;--text:#F3ECE2;--muted:#8C8172;}
+body{background:var(--bg);color:var(--text);font-family:'Manrope',Arial,sans-serif;min-height:100vh;}
+header{background:var(--panel);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:relative;}
+header::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,var(--yellow),transparent 70%);}
+.logo{font-family:'Fraunces',serif;font-style:italic;font-weight:700;font-size:1.05rem;color:var(--yellow);letter-spacing:.2px;}
 .back{padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;text-decoration:none;}
 .back:hover{border-color:var(--yellow);color:var(--yellow);}
 .conn{display:flex;align-items:center;gap:6px;margin-left:auto;}
-.dot{width:9px;height:9px;border-radius:50%;background:#333;}
+.dot{width:9px;height:9px;border-radius:50%;background:#3a3128;}
 .dot.on{background:var(--green);box-shadow:0 0 8px var(--green);}
 .conn-txt{font-size:0.72rem;color:var(--muted);}
 .logout{padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;}
@@ -27,7 +31,7 @@ header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:10p
 .sel{background:var(--card);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:9px;font-size:0.82rem;outline:none;cursor:pointer;}
 .btn{padding:9px 16px;border-radius:9px;border:none;font-size:0.82rem;font-weight:800;cursor:pointer;white-space:nowrap;}
 .btn-excel{background:var(--green);color:#fff;}
-.btn-add{background:var(--yellow);color:#000;}
+.btn-add{background:var(--yellow);color:#1a1408;}
 .btn:hover{opacity:.9;}
 
 .stats{display:flex;gap:12px;padding:14px 20px;flex-wrap:wrap;}
@@ -47,11 +51,11 @@ tr.low{background:rgba(204,0,0,.08);}
 .cat-tag{font-size:0.68rem;color:var(--muted);background:var(--panel);padding:2px 8px;border-radius:50px;border:1px solid var(--border);}
 .qty-input{width:90px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 9px;border-radius:7px;font-size:0.9rem;font-weight:800;outline:none;text-align:center;font-family:inherit;}
 .qty-input:focus{border-color:var(--yellow);}
-tr.low .qty-input{color:#ff6b6b;border-color:#5a1a1a;}
+tr.low .qty-input{color:#D97A87;border-color:#5a2029;}
 .unit{color:var(--muted);font-size:0.8rem;}
 .badge{font-size:0.68rem;font-weight:800;padding:3px 10px;border-radius:50px;}
 .badge-bajo{background:#431407;color:var(--orange);}
-.badge-critico{background:#3a0a0a;color:#ff6b6b;}
+.badge-critico{background:#2b1219;color:#D97A87;}
 .badge-ok{background:#14311d;color:var(--green);}
 .mini-input{width:70px;background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:0.8rem;outline:none;text-align:center;font-family:inherit;}
 .mini-input:focus{border-color:var(--yellow);}
@@ -71,7 +75,7 @@ tr.low .qty-input{color:#ff6b6b;border-color:#5a1a1a;}
 .mrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .modal-actions{display:flex;gap:8px;margin-top:18px;}
 .mbtn-cancel{flex:1;background:var(--border);border:none;color:var(--muted);padding:11px;border-radius:8px;font-weight:700;cursor:pointer;}
-.mbtn-ok{flex:2;background:var(--yellow);border:none;color:#000;padding:11px;border-radius:8px;font-weight:800;cursor:pointer;}
+.mbtn-ok{flex:2;background:var(--yellow);border:none;color:#1a1408;padding:11px;border-radius:8px;font-weight:800;cursor:pointer;}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:#222;color:var(--text);padding:9px 22px;border-radius:50px;font-weight:700;font-size:0.82rem;border:1px solid #444;transition:transform .3s;z-index:999;pointer-events:none;}
 .toast.on{transform:translateX(-50%) translateY(0);}
 </style>
@@ -375,7 +379,7 @@ onSnapshot(collection(db,'inventario'), function(snap){
   render();
 }, function(err){
   dot.classList.remove('on'); connTxt.textContent='Error';
-  document.getElementById('tbody').innerHTML='<tr><td colspan="7" class="empty" style="color:#f87171">❌ '+err.message+'</td></tr>';
+  document.getElementById('tbody').innerHTML='<tr><td colspan="7" class="empty" style="color:#D97A87">❌ '+err.message+'</td></tr>';
 });
 </script>
 </body>
