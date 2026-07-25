@@ -6,35 +6,37 @@
 <title>Boca'o — Acceso</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,600;1,9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
-  --bg:#0d0b09; --panel:#171310; --card:#1f1a15; --border:#332a1f;
-  --gold:#E3B341; --gold-bright:#F0C868; --burgundy:#A5293B;
-  --sage:#4FA875; --steel:#5B84A8; --text:#F3ECE2; --muted:#8C8172;
+  --red:#A6182E; --red-deep:#7A0F20;
+  --gold:#F2B705; --gold-deep:#D99A00;
+  --cream:#F7EFDD; --black:#171310;
+  --muted:rgba(247,239,221,.65);
 }
 body{
   background:
-    radial-gradient(ellipse 900px 600px at 50% -10%, rgba(227,179,65,.10), transparent 60%),
-    var(--bg);
+    radial-gradient(ellipse 800px 500px at 50% 0%, rgba(242,183,5,.18), transparent 65%),
+    linear-gradient(160deg,var(--red),var(--red-deep));
   display:flex;align-items:center;justify-content:center;min-height:100vh;
-  font-family:'Manrope',Arial,sans-serif;color:var(--text);
+  font-family:'Manrope',Arial,sans-serif;color:var(--cream);
 }
-.card{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:40px 34px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+.card{background:rgba(23,19,16,.28);border:2px solid var(--gold);border-radius:22px;padding:40px 34px;width:100%;max-width:380px;box-shadow:0 25px 70px rgba(0,0,0,.45);backdrop-filter:blur(3px);}
 .logo{text-align:center;margin-bottom:32px;}
-.logo-icon{font-size:2.6rem;}
-.logo-name{font-family:'Fraunces',serif;font-style:italic;font-weight:700;font-size:1.9rem;color:var(--gold);letter-spacing:.5px;margin-top:8px;}
-.logo-sub{font-size:0.7rem;color:var(--muted);margin-top:6px;letter-spacing:2px;text-transform:uppercase;font-weight:600;}
+.logo-icon{font-size:2.8rem;}
+.logo-name{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:2.4rem;color:var(--gold);letter-spacing:.5px;margin-top:6px;text-shadow:0 3px 0 var(--black);}
+.logo-sub{font-size:0.72rem;color:var(--cream);opacity:.85;margin-top:8px;letter-spacing:2px;text-transform:uppercase;font-weight:700;}
 .field{margin-bottom:16px;}
-.field label{font-size:0.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px;}
-.field input{width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);padding:13px 15px;border-radius:11px;font-size:0.95rem;outline:none;font-family:inherit;transition:all .2s;}
-.field input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(227,179,65,.15);}
-.btn{width:100%;background:linear-gradient(135deg,var(--gold-bright),var(--gold));color:#1a1408;border:none;padding:15px;border-radius:11px;font-size:0.92rem;font-weight:800;cursor:pointer;margin-top:10px;letter-spacing:.5px;transition:all .2s;}
-.btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(227,179,65,.3);}
-.error{background:rgba(165,41,59,.15);border:1px solid var(--burgundy);color:#e79aa4;border-radius:9px;padding:10px 14px;font-size:0.8rem;margin-top:14px;display:none;text-align:center;}
+.field label{font-size:0.68rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px;}
+.field input{width:100%;background:rgba(247,239,221,.95);border:2px solid transparent;color:var(--black);padding:13px 15px;border-radius:11px;font-size:0.95rem;outline:none;font-family:inherit;font-weight:600;transition:all .2s;}
+.field input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(242,183,5,.25);}
+.btn{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:var(--black);border:none;padding:15px;border-radius:11px;font-size:0.95rem;font-weight:800;cursor:pointer;margin-top:10px;letter-spacing:.5px;transition:all .2s;box-shadow:0 6px 0 #8a6600;}
+.btn:hover{transform:translateY(2px);box-shadow:0 4px 0 #8a6600;}
+.btn:active{transform:translateY(6px);box-shadow:0 0 0 #8a6600;}
+.error{background:rgba(0,0,0,.3);border:1px solid var(--gold);color:#FFD9DF;border-radius:9px;padding:10px 14px;font-size:0.8rem;margin-top:14px;display:none;text-align:center;}
 .error.show{display:block;}
-.version{text-align:center;margin-top:24px;font-size:0.66rem;color:var(--muted);opacity:.6;letter-spacing:.5px;}
+.version{text-align:center;margin-top:24px;font-size:0.66rem;color:var(--cream);opacity:.5;letter-spacing:.5px;}
 </style>
 </head>
 <body>
