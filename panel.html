@@ -40,37 +40,42 @@ header{background:#161616;border-bottom:3px solid #FFD700;padding:14px 24px;disp
     <div class="tile-name">Tomar Pedido</div>
     <div class="tile-desc">Registrar nuevos pedidos, armar combos, aplicar descuentos y cobrar.</div>
   </a>
-  <a class="tile green" href="ventas.html">
+  <a class="tile orange" href="turno.html">
+    <div class="tile-icon">🕐</div>
+    <div class="tile-name">Abrir / Cerrar Turno</div>
+    <div class="tile-desc">Fondo de caja, responsable del turno y cuadre automático por método de pago.</div>
+  </a>
+  <a class="tile green admin-only" href="ventas.html">
     <div class="tile-icon">📊</div>
     <div class="tile-name">Ventas del día</div>
     <div class="tile-desc">Facturas, totales por día, desglose por método de pago.</div>
   </a>
-  <a class="tile blue" href="ordenes.html">
+  <a class="tile blue admin-only" href="ordenes.html">
     <div class="tile-icon">📋</div>
     <div class="tile-name">Historial de Órdenes</div>
     <div class="tile-desc">Ver todos los pedidos del día con su estado actual.</div>
   </a>
-  <a class="tile orange" href="inventario.html">
+  <a class="tile orange admin-only" href="inventario.html">
     <div class="tile-icon">📦</div>
     <div class="tile-name">Inventario</div>
     <div class="tile-desc">Stock de ingredientes, alertas de bajo, descarga a Excel. Se descuenta solo con cada pedido.</div>
   </a>
-  <a class="tile orange" href="platos.html">
+  <a class="tile orange admin-only" href="platos.html">
     <div class="tile-icon">🍽️</div>
     <div class="tile-name">Platos</div>
     <div class="tile-desc">Editar o añadir platos del menú: nombre, descripción, precios y categoría.</div>
   </a>
-  <a class="tile green" href="recetas.html">
+  <a class="tile green admin-only" href="recetas.html">
     <div class="tile-icon">📖</div>
     <div class="tile-name">Recetas</div>
     <div class="tile-desc">Ver los ingredientes de cada producto del menú. Lo que se descuenta al vender.</div>
   </a>
-  <a class="tile blue" href="contable.html">
+  <a class="tile blue admin-only" href="contable.html">
     <div class="tile-icon">💼</div>
     <div class="tile-name">Contable</div>
     <div class="tile-desc">Activos líquidos por caja, ingresos y gastos de tesorería.</div>
   </a>
-  <a class="tile green" href="clientes.html">
+  <a class="tile green admin-only" href="clientes.html">
     <div class="tile-icon">🏆</div>
     <div class="tile-name">Clientes · BocaPuntos</div>
     <div class="tile-desc">Puntos acumulados por conjunto/torre/apto, canje de premios y ajustes manuales.</div>
@@ -79,13 +84,16 @@ header{background:#161616;border-bottom:3px solid #FFD700;padding:14px 24px;disp
 
 <script>
 var sess=JSON.parse(sessionStorage.getItem('bocao_sess')||'null');
-if(!sess||sess.role!=='admin'){window.location.href='/login.html';}
+if(!sess||(sess.role!=='admin'&&sess.role!=='cajero')){window.location.href='/login.html';}
 else{
   document.getElementById('welcomeMsg').textContent='Hola, '+sess.nombre+' 👋';
   var d=new Date();
   var dias=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
   var meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   document.getElementById('fechaHoy').textContent=dias[d.getDay()]+', '+d.getDate()+' de '+meses[d.getMonth()]+' de '+d.getFullYear();
+  if(sess.role!=='admin'){
+    document.querySelectorAll('.admin-only').forEach(function(el){el.style.display='none';});
+  }
 }
 function logout(){sessionStorage.removeItem('bocao_sess');window.location.href='/login.html';}
 </script>
