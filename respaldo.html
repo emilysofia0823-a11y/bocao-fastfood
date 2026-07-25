@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Boca'o — Respaldo</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#0a0a0a;--panel:#141414;--card:#1a1a1a;--border:#2a2a2a;--yellow:#FFD700;--red:#CC0000;--green:#22c55e;--text:#f0f0f0;--muted:#666;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;}
+header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:10px 20px;display:flex;align-items:center;gap:12px;}
+.logo{font-size:1rem;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1px;}
+.back{padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;text-decoration:none;}
+.back:hover{border-color:var(--yellow);color:var(--yellow);}
+.logout{margin-left:auto;padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;}
+.logout:hover{border-color:var(--red);color:var(--red);}
+.wrap{max-width:640px;margin:0 auto;padding:30px 20px;}
+.box{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:26px;margin-bottom:20px;text-align:center;}
+.box h2{color:var(--yellow);font-size:1.1rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+.box p{color:var(--muted);font-size:0.85rem;line-height:1.6;margin-bottom:20px;}
+.list-incluye{text-align:left;font-size:0.78rem;color:var(--muted);margin-bottom:20px;line-height:1.8;background:var(--panel);border-radius:10px;padding:14px 18px;}
+.list-incluye b{color:var(--text);}
+.btn{background:var(--yellow);color:#000;border:none;padding:15px 30px;border-radius:10px;font-size:0.95rem;font-weight:900;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;}
+.btn:disabled{background:#333;color:#777;cursor:not-allowed;}
+.progreso{margin-top:14px;font-size:0.8rem;color:var(--muted);min-height:20px;}
+.hist-box h2{text-align:left;}
+.hist-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:8px;text-align:left;}
+.hist-fecha{font-weight:700;font-size:0.85rem;color:var(--green);}
+.hist-detalle{font-size:0.72rem;color:var(--muted);margin-top:4px;line-height:1.5;}
+.empty{text-align:center;color:var(--muted);padding:16px;font-size:0.85rem;}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="panel.html">← Panel</a>
+  <div class="logo">📥 Respaldo de datos</div>
+  <button class="logout" onclick="logout()">Salir</button>
+</header>
+
+<div class="wrap">
+  <div class="box">
+    <h2>Respaldo completo en Excel</h2>
+    <p>Descarga un archivo Excel con todas las hojas de datos del sistema: pedidos, ventas, inventario, contable, clientes y turnos. Úsalo periódicamente para tener una copia de seguridad fuera de la página.</p>
+    <div class="list-incluye">
+      <b>Incluye estas hojas:</b><br/>
+      Pedidos · Pedidos eliminados · Platos del menú · Inventario · Cajas (activos líquidos) · Movimientos de tesorería · Clientes y BocaPuntos · Historial de puntos · Turnos de caja
+    </div>
+    <button class="btn" id="btnDescargar" onclick="generarRespaldo()">📥 Descargar respaldo completo (Excel)</button>
+    <div class="progreso" id="progreso"></div>
+  </div>
+
+  <div class="box hist-box">
+    <h2>Historial de respaldos</h2>
+    <div id="historial"><div class="empty">Cargando...</div></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+var sess=JSON.parse(sessionStorage.getItem('bocao_sess')||'null');
+if(!sess||sess.role!=='admin'){window.location.href='/login.html';}
+window.logout=function(){sessionStorage.removeItem('bocao_sess');window.location.href='/login.html';};
+
+var app=initializeApp({apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"});
+var db=getFirestore(app);
+
+var COLECCIONES=[
+  {nombre:'pedidos',hoja:'Pedidos'},
+  {nombre:'pedidos_eliminados',hoja:'Pedidos eliminados'},
+  {nombre:'productos',hoja:'Platos del menu'},
+  {nombre:'inventario',hoja:'Inventario'},
+  {nombre:'cajas',hoja:'Cajas'},
+  {nombre:'movimientos_tesoreria',hoja:'Mov. tesoreria'},
+  {nombre:'clientes_puntos',hoja:'Clientes BocaPuntos'},
+  {nombre:'puntos_movimientos',hoja:'Historial puntos'},
+  {nombre:'turnos',hoja:'Turnos de caja'}
+];
+
+function flattenDoc(id,data){
+  var row={_id:id};
+  Object.keys(data).forEach(function(k){
+    var v=data[k];
+    if(v&&typeof v.toDate==='function'){ row[k]=v.toDate().toISOString(); }
+    else if(v&&typeof v==='object'){ row[k]=JSON.stringify(v); }
+    else { row[k]=v; }
+  });
+  return row;
+}
+
+async function exportarColeccion(nombre){
+  var snap=await getDocs(collection(db,nombre));
+  var rows=[];
+  snap.forEach(function(d){ rows.push(flattenDoc(d.id,d.data())); });
+  return rows;
+}
+
+window.generarRespaldo=async function(){
+  var btn=document.getElementById('btnDescargar');
+  var prog=document.getElementById('progreso');
+  btn.disabled=true;
+  var wb=XLSX.utils.book_new();
+  var resumenPartes=[];
+  for(var i=0;i<COLECCIONES.length;i++){
+    var c=COLECCIONES[i];
+    prog.textContent='Exportando '+c.hoja+'... ('+(i+1)+'/'+COLECCIONES.length+')';
+    try{
+      var rows=await exportarColeccion(c.nombre);
+      var ws=rows.length?XLSX.utils.json_to_sheet(rows):XLSX.utils.aoa_to_sheet([['Sin datos']]);
+      XLSX.utils.book_append_sheet(wb,ws,c.hoja.substring(0,31));
+      resumenPartes.push(c.hoja+': '+rows.length);
+    }catch(e){
+      resumenPartes.push(c.hoja+': error');
+      console.warn('Error exportando',c.nombre,e);
+    }
+  }
+  var fecha=new Date().toISOString().slice(0,10);
+  prog.textContent='Generando archivo...';
+  XLSX.writeFile(wb,'Bocao_Respaldo_'+fecha+'.xlsx');
+  prog.textContent='✅ Respaldo descargado.';
+  addDoc(collection(db,'respaldos_log'),{
+    fecha:new Date().toISOString(), registradoPor:sess.nombre,
+    resumen:resumenPartes.join(' | '), fechaCreacion:serverTimestamp()
+  }).catch(function(e){console.warn(e);});
+  btn.disabled=false;
+};
+
+onSnapshot(collection(db,'respaldos_log'),function(snap){
+  var lista=[];
+  snap.forEach(function(d){lista.push(d.data());});
+  lista.sort(function(a,b){return new Date(b.fecha)-new Date(a.fecha);});
+  var el=document.getElementById('historial');
+  if(lista.length===0){el.innerHTML='<div class="empty">Sin respaldos registrados todavía.</div>';return;}
+  el.innerHTML='';
+  lista.slice(0,15).forEach(function(r){
+    var item=document.createElement('div'); item.className='hist-item';
+    item.innerHTML='<div class="hist-fecha">'+new Date(r.fecha).toLocaleString('es-CO')+' — '+(r.registradoPor||'')+'</div><div class="hist-detalle">'+(r.resumen||'')+'</div>';
+    el.appendChild(item);
+  });
+});
+</script>
+</body>
+</html>
