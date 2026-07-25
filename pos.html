@@ -232,6 +232,15 @@ header::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
 
 /* TOAST */
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:#222;color:var(--text);padding:9px 22px;border-radius:50px;font-weight:700;font-size:0.82rem;border:1px solid #444;transition:transform .3s;z-index:999;pointer-events:none;white-space:nowrap;}
+
+/* BLOQUEO SIN TURNO ABIERTO */
+.turno-block-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.97);z-index:2000;align-items:center;justify-content:center;padding:20px;}
+.turno-block-overlay.show{display:flex;}
+.turno-block-box{background:var(--card);border:2px solid var(--yellow);border-radius:16px;padding:36px 30px;max-width:380px;text-align:center;}
+.turno-block-icon{font-size:2.6rem;margin-bottom:14px;}
+.turno-block-box h2{color:var(--yellow);font-size:1.1rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+.turno-block-box p{color:var(--muted);font-size:0.85rem;line-height:1.5;margin-bottom:20px;}
+.turno-block-btn{display:inline-block;background:var(--yellow);color:#000;border:none;padding:13px 26px;border-radius:10px;font-size:0.9rem;font-weight:900;cursor:pointer;text-decoration:none;text-transform:uppercase;letter-spacing:.5px;}
 .toast.on{transform:translateX(-50%) translateY(0);}
 </style>
 </head>
@@ -456,6 +465,15 @@ header::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="turno-block-overlay show" id="turnoBlockOverlay">
+  <div class="turno-block-box">
+    <div class="turno-block-icon">🕐</div>
+    <h2 id="turnoBlockTitle">Verificando turno...</h2>
+    <p>Para tomar pedidos primero debe abrirse un turno con el fondo de caja inicial. Un responsable debe registrarse antes de empezar a vender.</p>
+    <a class="turno-block-btn" href="turno.html">Abrir turno →</a>
+  </div>
+</div>
 
 <script src="recetas.js"></script>
 <script>
@@ -703,6 +721,7 @@ function toggleClienteInfo(){
 async function confirmar(){
   if(cart.length===0)return;
   if(confirmando)return;
+  if(!window._turnoActivo){toast('⚠️ Debes abrir un turno antes de tomar pedidos');return;}
   if(tipo==='domicilio'){
     if(!document.getElementById('cNombre').value.trim()){toast('⚠️ Ingresa el nombre del cliente');return;}
   }
@@ -1089,12 +1108,15 @@ try {
       }).catch(function(e){console.warn('puntos-mov',e);});
     }
   };
-  // Turno activo: quién es el responsable de caja en este momento
+  // Turno activo: quién es el responsable de caja en este momento.
+  // Sin turno abierto no se pueden tomar pedidos (bloqueo obligatorio).
   window._turnoActivo=null;
   onSnapshot(collection(db,'turnos'),function(snap){
     var abierto=null;
     snap.forEach(function(d){ var t=d.data(); if(t.estado==='abierto') abierto=Object.assign({_id:d.id},t); });
     window._turnoActivo=abierto;
+    document.getElementById('turnoBlockOverlay').classList.toggle('show',!abierto);
+    document.getElementById('turnoBlockTitle').textContent='No hay turno abierto';
   });
   // Menú (platos): se edita desde platos.html, se refleja aquí en tiempo real
   onSnapshot(collection(db,'productos'),function(snap){
