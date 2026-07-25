@@ -82,7 +82,7 @@ header::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
 .canje-opt span:first-child{font-weight:700;font-size:0.88rem;}
 .canje-opt span:last-child{color:var(--yellow);font-weight:800;}
 
-.cart-list{flex:1;overflow-y:auto;padding:8px 14px;min-height:0;}
+.cart-list{flex:1;overflow-y:auto;padding:8px 14px;min-height:130px;}
 .cart-empty{color:var(--muted);text-align:center;margin-top:24px;font-size:0.82rem;line-height:1.7;}
 .cart-row{background:var(--card);border-radius:9px;padding:9px 10px;margin-bottom:6px;}
 .cart-row-top{display:flex;justify-content:space-between;gap:6px;}
@@ -276,19 +276,9 @@ header::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
         <span class="arrow" id="clienteArrow">▼</span>
       </div>
       <div class="cliente-fields-wrap" id="clienteFieldsWrap">
-        <div class="fields-row">
-          <div class="field full">
-            <label>Nombre del cliente *</label>
-            <input type="text" id="cNombre" placeholder="Nombre completo"/>
-          </div>
-          <div class="field">
-            <label>Teléfono</label>
-            <input type="text" id="cTel" placeholder="300 000 0000"/>
-          </div>
-          <div class="field">
-            <label>Dirección</label>
-            <input type="text" id="cDir" placeholder="Calle 5 #10-20"/>
-          </div>
+        <div class="field full">
+          <label>Nombre del cliente *</label>
+          <input type="text" id="cNombre" placeholder="Nombre completo"/>
         </div>
         <div class="field">
           <label>Barrio / Zona *</label>
@@ -528,15 +518,13 @@ function onBarrio(){
   calcTotals();
 }
 
-// ── BOCAPUNTOS: identifica al cliente por conjunto+torre+apto (o teléfono si no aplica) ──
+// ── BOCAPUNTOS: identifica al cliente por conjunto+torre+apto ──
 function normClave(s){ return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ').trim(); }
 function calcularClienteKey(){
   var conj=normClave(document.getElementById('cConjunto').value);
   var torre=normClave(document.getElementById('cTorre').value);
   var apto=normClave(document.getElementById('cApto').value);
   if(conj||torre||apto) return 'dir:'+conj+'|'+torre+'|'+apto;
-  var tel=normClave(document.getElementById('cTel').value);
-  if(tel) return 'tel:'+tel;
   return null;
 }
 function balanceClienteActual(){
@@ -635,6 +623,7 @@ function closeModal(){document.getElementById('modalOverlay').classList.remove('
 
 function agregarAlCarrito(){
   if(!selectedVar){toast('⚠️ Elige una opción');return;}
+  var eraVacio=cart.length===0;
   var notas=document.getElementById('mNotas').value.trim();
   var catKey=Object.keys(MENU).find(function(k){return MENU[k].items.find(function(i){return i.id===pendingItem.id;});});
   var labels={hamburguesas:'Hamburguesa',perros:'Perro Caliente',salchipapas:'Salchipapa',combos:'Combo',adicionales:'Adicional',bebidas:'Bebida'};
@@ -644,6 +633,8 @@ function agregarAlCarrito(){
   if(ex){ex.qty+=modalQty;}else{cart.push({key:key,id:pendingItem.id,name:fullName.trim(),variant:selectedVar.label,price:selectedVar.price,qty:modalQty,notas:notas});}
   var cantAgregada=modalQty, nombreAgregado=pendingItem.name;
   closeModal(); renderCart(); toast('✅ '+cantAgregada+'x '+nombreAgregado+' agregado');
+  // Al agregar el primer producto, colapsa la info del cliente para dejar ver el carrito
+  if(eraVacio&&!clienteColapsado) toggleClienteInfo();
 }
 
 function renderCart(){
@@ -727,7 +718,7 @@ async function confirmar(){
     document.getElementById('pedidoNumVal').textContent=numeroAsignado+1;
     var pedido={
       numero:numeroAsignado, tipo:tipo, estadoEntrega:'pendiente', cajero:'Kelly',
-      cliente:{nombre:document.getElementById('cNombre').value.trim(),telefono:document.getElementById('cTel').value.trim(),direccion:document.getElementById('cDir').value.trim(),barrio:bp[0]||'',costoEnvio:costoEnvio},
+      cliente:{nombre:document.getElementById('cNombre').value.trim(),telefono:'',direccion:'',barrio:bp[0]||'',costoEnvio:costoEnvio},
       items:cart.map(function(i){return{nombre:i.name,variante:i.variant==='Precio'?'':i.variant,precio:i.price,cantidad:i.qty,notas:i.notas};}),
       notasGenerales:document.getElementById('notasGen').value.trim(),
       subtotal:sub, descuentoPct:descuentoPct, descuentoValor:descuentoValor, costoEnvio:costoEnvio, total:sub-descuentoValor+costoEnvio,
@@ -783,7 +774,7 @@ function descontarInventario(items){
 }
 
 function limpiarCliente(){
-  ['cNombre','cTel','cDir','cConjunto','cTorre','cApto'].forEach(function(id){document.getElementById(id).value='';});
+  ['cNombre','cConjunto','cTorre','cApto'].forEach(function(id){document.getElementById(id).value='';});
   document.getElementById('cBarrio').value='';document.getElementById('envioTag').textContent='';document.getElementById('tEnvioRow').style.display='none';document.getElementById('notasGen').value='';costoEnvio=0;
   descuentoPct=0;document.getElementById('descuentoInput').value='';document.getElementById('descuentoValorLabel').textContent='';
   document.getElementById('cAcumulaPuntos').checked=false;document.getElementById('puntosBalanceLabel').textContent='';document.getElementById('puntosCanjeTag').textContent='';
