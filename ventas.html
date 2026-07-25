@@ -4,12 +4,16 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Boca'o — Ventas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-:root{--bg:#0a0a0a;--panel:#141414;--card:#1a1a1a;--border:#2a2a2a;--yellow:#FFD700;--red:#CC0000;--green:#22c55e;--blue:#3b82f6;--text:#f0f0f0;--muted:#666;}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;}
-header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:10px 20px;display:flex;align-items:center;gap:12px;}
-.logo{font-size:1rem;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1px;}
+:root{--bg:#0d0b09;--panel:#171310;--card:#1f1a15;--border:#332a1f;--yellow:#E3B341;--red:#A5293B;--green:#4FA875;--blue:#5B84A8;--text:#F3ECE2;--muted:#8C8172;}
+body{background:var(--bg);color:var(--text);font-family:'Manrope',Arial,sans-serif;min-height:100vh;}
+header{background:var(--panel);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:12px;position:relative;}
+header::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,var(--yellow),transparent 70%);}
+.logo{font-family:'Fraunces',serif;font-style:italic;font-weight:700;font-size:1.05rem;color:var(--yellow);letter-spacing:.2px;}
 .back{padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;text-decoration:none;}
 .back:hover{border-color:var(--yellow);color:var(--yellow);}
 .logout{margin-left:auto;padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;}
@@ -22,14 +26,14 @@ header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:10p
 .date-nav input[type=date]:focus{border-color:var(--yellow);}
 .quick-btns{display:flex;gap:6px;margin-left:8px;flex-wrap:wrap;}
 .qb{padding:7px 14px;border-radius:50px;border:2px solid var(--border);background:var(--card);color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .2s;}
-.qb:hover,.qb.sel{background:var(--yellow);border-color:var(--yellow);color:#000;}
+.qb:hover,.qb.sel{background:var(--yellow);border-color:var(--yellow);color:#1a1408;}
 .range-toggle{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--muted);}
 
 /* RESUMEN */
 .resumen{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;padding:16px 20px;}
-.stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.stat{background:linear-gradient(160deg,var(--card),var(--panel));border:1px solid var(--border);border-radius:14px;padding:14px 16px;}
 .stat-label{font-size:0.67rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
-.stat-val{font-size:1.4rem;font-weight:900;color:var(--yellow);}
+.stat-val{font-family:'Fraunces',serif;font-size:1.5rem;font-weight:700;color:var(--yellow);}
 .stat-val.green{color:var(--green);}
 .stat-val.blue{color:var(--blue);}
 .stat-val.red{color:var(--red);}
@@ -42,7 +46,7 @@ header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:10p
 .pago-row:last-child{margin-bottom:0;}
 .pago-icon{font-size:1.1rem;width:24px;text-align:center;}
 .pago-name{font-size:0.82rem;font-weight:700;flex:1;}
-.pago-bar-track{flex:2;background:#111;border-radius:50px;height:8px;overflow:hidden;}
+.pago-bar-track{flex:2;background:#14110c;border-radius:50px;height:8px;overflow:hidden;}
 .pago-bar-fill{height:100%;border-radius:50px;transition:width .4s;}
 .pago-amount{font-size:0.82rem;font-weight:700;color:var(--yellow);min-width:80px;text-align:right;}
 
@@ -52,30 +56,30 @@ header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:10p
 .ff{padding:5px 12px;border-radius:50px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:0.72rem;font-weight:700;cursor:pointer;transition:all .2s;}
 .ff.active{background:var(--red);border-color:var(--red);color:#fff;}
 .facturas{padding:0 20px 20px;display:flex;flex-direction:column;gap:8px;}
-.fact-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.fact-card{background:linear-gradient(160deg,var(--card),var(--panel));border:1px solid var(--border);border-radius:14px;overflow:hidden;}
 .fact-head{padding:10px 14px;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;}
-.fact-num{background:var(--red);color:#fff;font-weight:900;font-size:0.78rem;padding:3px 10px;border-radius:50px;}
+.fact-num{font-family:'Fraunces',serif;background:var(--red);color:#fff;font-weight:700;font-size:0.78rem;padding:3px 10px;border-radius:50px;}
 .fact-tipo{font-size:0.72rem;font-weight:700;padding:3px 9px;border-radius:50px;}
-.ftdom{background:#1e3a5f;color:#60a5fa;}
-.ftrec{background:#1a2e1a;color:#86efac;}
+.ftdom{background:#202d38;color:#8FB4D4;}
+.ftrec{background:#1a2b20;color:#8FC7A8;}
 .fact-cliente{font-size:0.82rem;font-weight:700;flex:1;}
-.fact-total{font-size:0.95rem;font-weight:900;color:var(--yellow);}
+.fact-total{font-family:'Fraunces',serif;font-size:1rem;font-weight:700;color:var(--yellow);}
 .fact-hora{font-size:0.7rem;color:var(--muted);}
 .fact-estado{font-size:0.7rem;font-weight:700;padding:3px 9px;border-radius:50px;}
-.est-pagado{background:#14532d;color:var(--green);}
-.est-pendiente{background:#431407;color:#f97316;}
+.est-pagado{background:#1a2b20;color:var(--green);}
+.est-pendiente{background:#3a2414;color:#C9793E;}
 .fact-body{display:none;border-top:1px solid var(--border);padding:12px 14px;}
 .fact-body.open{display:block;}
 .fact-items{margin-bottom:8px;}
-.fi-row{display:flex;justify-content:space-between;font-size:0.8rem;padding:3px 0;border-bottom:1px dashed #222;}
+.fi-row{display:flex;justify-content:space-between;font-size:0.8rem;padding:3px 0;border-bottom:1px dashed var(--border);}
 .fi-row:last-child{border-bottom:none;}
 .fi-name{color:var(--text);}
 .fi-var{font-size:0.68rem;color:var(--muted);}
 .fi-price{color:var(--yellow);font-weight:700;}
-.fi-obs{font-size:0.68rem;color:#f97316;font-style:italic;padding-left:8px;}
-.fact-totals{border-top:1px dashed #333;padding-top:8px;font-size:0.8rem;}
+.fi-obs{font-size:0.68rem;color:#C9793E;font-style:italic;padding-left:8px;}
+.fact-totals{border-top:1px dashed var(--border);padding-top:8px;font-size:0.8rem;}
 .ft-row{display:flex;justify-content:space-between;color:var(--muted);margin-bottom:3px;}
-.ft-row.big{font-weight:900;color:var(--text);font-size:0.95rem;border-top:1px solid #333;padding-top:6px;margin-top:4px;}
+.ft-row.big{font-weight:900;color:var(--text);font-size:0.95rem;border-top:1px solid var(--border);padding-top:6px;margin-top:4px;}
 .ft-row.big span:last-child{color:var(--yellow);}
 .ft-pago{color:var(--green);font-weight:700;}
 .empty{text-align:center;padding:40px 20px;color:var(--muted);}
@@ -178,7 +182,7 @@ function renderStats(data){
   document.getElementById('sPromedio').textContent=data.length?fmt(Math.round(total/data.length)):'$0';
   // pago bar
   var maxP=Math.max(pagoTotals.efectivo,pagoTotals.nequi,pagoTotals.transferencia,1);
-  var configs=[{k:'efectivo',icon:'💵',name:'Efectivo',color:'#22c55e'},{k:'nequi',icon:'📱',name:'Nequi',color:'#3b82f6'},{k:'transferencia',icon:'🏦',name:'Transferencia',color:'#FFD700'}];
+  var configs=[{k:'efectivo',icon:'💵',name:'Efectivo',color:'#4FA875'},{k:'nequi',icon:'📱',name:'Nequi',color:'#5B84A8'},{k:'transferencia',icon:'🏦',name:'Transferencia',color:'#E3B341'}];
   document.getElementById('pagoDesglose').innerHTML=configs.map(function(c){
     var pct=Math.round((pagoTotals[c.k]/maxP)*100);
     return'<div class="pago-row"><span class="pago-icon">'+c.icon+'</span><span class="pago-name">'+c.name+'</span><div class="pago-bar-track"><div class="pago-bar-fill" style="width:'+pct+'%;background:'+c.color+'"></div></div><span class="pago-amount">'+fmt(pagoTotals[c.k])+'</span></div>';
