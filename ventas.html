@@ -6,49 +6,48 @@
 <title>Boca'o — Ventas</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-:root{--bg:#0d0b09;--panel:#171310;--card:#1f1a15;--border:#332a1f;--yellow:#E3B341;--red:#A5293B;--green:#4FA875;--blue:#5B84A8;--text:#F3ECE2;--muted:#8C8172;}
+:root{--bg:#F7EFDD;--panel:#FFFFFF;--card:#FFFFFF;--border:#E8D9B8;--yellow:#F2B705;--gold-deep:#B38600;--red:#A6182E;--green:#2F9E5B;--blue:#2C6E9E;--text:#1F1B15;--muted:#7A6C58;}
 body{background:var(--bg);color:var(--text);font-family:'Manrope',Arial,sans-serif;min-height:100vh;}
-header{background:var(--panel);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:12px;position:relative;}
-header::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,var(--yellow),transparent 70%);}
-.logo{font-family:'Fraunces',serif;font-style:italic;font-weight:700;font-size:1.05rem;color:var(--yellow);letter-spacing:.2px;}
-.back{padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;text-decoration:none;}
+header{background:linear-gradient(135deg,#A6182E,#7A0F20);padding:10px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 3px 14px rgba(122,15,32,.2);}
+.logo{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.05rem;color:var(--yellow);letter-spacing:.2px;}
+.back{padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.15);color:#F7EFDD;font-size:0.75rem;font-weight:700;cursor:pointer;text-decoration:none;}
 .back:hover{border-color:var(--yellow);color:var(--yellow);}
-.logout{margin-left:auto;padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;}
-.logout:hover{border-color:var(--red);color:var(--red);}
+.logout{margin-left:auto;padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.15);color:#F7EFDD;font-size:0.75rem;font-weight:700;cursor:pointer;}
+.logout:hover{border-color:#FFD9DF;color:#FFD9DF;}
 
 /* DATE NAV */
-.date-nav{background:var(--panel);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.date-nav{background:var(--panel);border-bottom:2px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .date-nav label{font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
-.date-nav input[type=date]{background:var(--card);border:2px solid var(--border);color:var(--text);padding:8px 12px;border-radius:10px;font-size:0.88rem;outline:none;font-family:inherit;cursor:pointer;}
-.date-nav input[type=date]:focus{border-color:var(--yellow);}
+.date-nav input[type=date]{background:var(--bg);border:2px solid var(--border);color:var(--text);padding:8px 12px;border-radius:10px;font-size:0.88rem;outline:none;font-family:inherit;cursor:pointer;}
+.date-nav input[type=date]:focus{border-color:var(--red);}
 .quick-btns{display:flex;gap:6px;margin-left:8px;flex-wrap:wrap;}
-.qb{padding:7px 14px;border-radius:50px;border:2px solid var(--border);background:var(--card);color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .2s;}
-.qb:hover,.qb.sel{background:var(--yellow);border-color:var(--yellow);color:#1a1408;}
+.qb{padding:7px 14px;border-radius:50px;border:2px solid var(--border);background:var(--bg);color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .2s;}
+.qb:hover,.qb.sel{background:var(--red);border-color:var(--red);color:#fff;}
 .range-toggle{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:0.75rem;color:var(--muted);}
 
 /* RESUMEN */
 .resumen{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;padding:16px 20px;}
-.stat{background:linear-gradient(160deg,var(--card),var(--panel));border:1px solid var(--border);border-radius:14px;padding:14px 16px;}
+.stat{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:14px 16px;box-shadow:0 2px 0 var(--border);}
 .stat-label{font-size:0.67rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
-.stat-val{font-family:'Fraunces',serif;font-size:1.5rem;font-weight:700;color:var(--yellow);}
+.stat-val{font-family:'Baloo 2',sans-serif;font-size:1.6rem;font-weight:700;color:var(--red);}
 .stat-val.green{color:var(--green);}
 .stat-val.blue{color:var(--blue);}
 .stat-val.red{color:var(--red);}
 .stat-sub{font-size:0.72rem;color:var(--muted);margin-top:3px;}
 
 /* PAGO BREAKDOWN */
-.pago-bar{margin:0 20px 16px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.pago-bar{margin:0 20px 16px;background:var(--card);border:2px solid var(--border);border-radius:12px;padding:14px 16px;}
 .pago-bar-title{font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
 .pago-row{display:flex;align-items:center;gap:10px;margin-bottom:7px;}
 .pago-row:last-child{margin-bottom:0;}
 .pago-icon{font-size:1.1rem;width:24px;text-align:center;}
 .pago-name{font-size:0.82rem;font-weight:700;flex:1;}
-.pago-bar-track{flex:2;background:#14110c;border-radius:50px;height:8px;overflow:hidden;}
+.pago-bar-track{flex:2;background:#EEE3C6;border-radius:50px;height:8px;overflow:hidden;}
 .pago-bar-fill{height:100%;border-radius:50px;transition:width .4s;}
-.pago-amount{font-size:0.82rem;font-weight:700;color:var(--yellow);min-width:80px;text-align:right;}
+.pago-amount{font-size:0.82rem;font-weight:700;color:var(--red);min-width:80px;text-align:right;}
 
 /* FACTURAS */
 .section-head{padding:8px 20px 6px;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;justify-content:space-between;}
@@ -56,18 +55,18 @@ header::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px
 .ff{padding:5px 12px;border-radius:50px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:0.72rem;font-weight:700;cursor:pointer;transition:all .2s;}
 .ff.active{background:var(--red);border-color:var(--red);color:#fff;}
 .facturas{padding:0 20px 20px;display:flex;flex-direction:column;gap:8px;}
-.fact-card{background:linear-gradient(160deg,var(--card),var(--panel));border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.fact-card{background:var(--card);border:2px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 2px 0 var(--border);}
 .fact-head{padding:10px 14px;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;}
-.fact-num{font-family:'Fraunces',serif;background:var(--red);color:#fff;font-weight:700;font-size:0.78rem;padding:3px 10px;border-radius:50px;}
+.fact-num{font-family:'Baloo 2',sans-serif;background:var(--red);color:#fff;font-weight:700;font-size:0.78rem;padding:3px 10px;border-radius:50px;}
 .fact-tipo{font-size:0.72rem;font-weight:700;padding:3px 9px;border-radius:50px;}
-.ftdom{background:#202d38;color:#8FB4D4;}
-.ftrec{background:#1a2b20;color:#8FC7A8;}
+.ftdom{background:#DCEBF5;color:#1E5A80;}
+.ftrec{background:#DFF3E6;color:#1E7A45;}
 .fact-cliente{font-size:0.82rem;font-weight:700;flex:1;}
-.fact-total{font-family:'Fraunces',serif;font-size:1rem;font-weight:700;color:var(--yellow);}
+.fact-total{font-family:'Baloo 2',sans-serif;font-size:1.05rem;font-weight:700;color:var(--red);}
 .fact-hora{font-size:0.7rem;color:var(--muted);}
 .fact-estado{font-size:0.7rem;font-weight:700;padding:3px 9px;border-radius:50px;}
-.est-pagado{background:#1a2b20;color:var(--green);}
-.est-pendiente{background:#3a2414;color:#C9793E;}
+.est-pagado{background:#DFF3E6;color:var(--green);}
+.est-pendiente{background:#FCEBD5;color:#B36A1E;}
 .fact-body{display:none;border-top:1px solid var(--border);padding:12px 14px;}
 .fact-body.open{display:block;}
 .fact-items{margin-bottom:8px;}
@@ -75,12 +74,12 @@ header::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px
 .fi-row:last-child{border-bottom:none;}
 .fi-name{color:var(--text);}
 .fi-var{font-size:0.68rem;color:var(--muted);}
-.fi-price{color:var(--yellow);font-weight:700;}
-.fi-obs{font-size:0.68rem;color:#C9793E;font-style:italic;padding-left:8px;}
+.fi-price{color:var(--red);font-weight:700;}
+.fi-obs{font-size:0.68rem;color:#B36A1E;font-style:italic;padding-left:8px;}
 .fact-totals{border-top:1px dashed var(--border);padding-top:8px;font-size:0.8rem;}
 .ft-row{display:flex;justify-content:space-between;color:var(--muted);margin-bottom:3px;}
 .ft-row.big{font-weight:900;color:var(--text);font-size:0.95rem;border-top:1px solid var(--border);padding-top:6px;margin-top:4px;}
-.ft-row.big span:last-child{color:var(--yellow);}
+.ft-row.big span:last-child{color:var(--red);}
 .ft-pago{color:var(--green);font-weight:700;}
 .empty{text-align:center;padding:40px 20px;color:var(--muted);}
 .loading{text-align:center;padding:40px 20px;color:var(--muted);}
@@ -182,7 +181,7 @@ function renderStats(data){
   document.getElementById('sPromedio').textContent=data.length?fmt(Math.round(total/data.length)):'$0';
   // pago bar
   var maxP=Math.max(pagoTotals.efectivo,pagoTotals.nequi,pagoTotals.transferencia,1);
-  var configs=[{k:'efectivo',icon:'💵',name:'Efectivo',color:'#4FA875'},{k:'nequi',icon:'📱',name:'Nequi',color:'#5B84A8'},{k:'transferencia',icon:'🏦',name:'Transferencia',color:'#E3B341'}];
+  var configs=[{k:'efectivo',icon:'💵',name:'Efectivo',color:'#2F9E5B'},{k:'nequi',icon:'📱',name:'Nequi',color:'#2C6E9E'},{k:'transferencia',icon:'🏦',name:'Transferencia',color:'#F2B705'}];
   document.getElementById('pagoDesglose').innerHTML=configs.map(function(c){
     var pct=Math.round((pagoTotals[c.k]/maxP)*100);
     return'<div class="pago-row"><span class="pago-icon">'+c.icon+'</span><span class="pago-name">'+c.name+'</span><div class="pago-bar-track"><div class="pago-bar-fill" style="width:'+pct+'%;background:'+c.color+'"></div></div><span class="pago-amount">'+fmt(pagoTotals[c.k])+'</span></div>';
