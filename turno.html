@@ -6,45 +6,44 @@
 <title>Boca'o — Turno de Caja</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-:root{--bg:#0d0b09;--panel:#171310;--card:#1f1a15;--border:#332a1f;--yellow:#E3B341;--red:#A5293B;--green:#4FA875;--blue:#5B84A8;--orange:#C9793E;--text:#F3ECE2;--muted:#8C8172;}
+:root{--bg:#F7EFDD;--panel:#FFFFFF;--card:#FFFFFF;--border:#E8D9B8;--yellow:#F2B705;--gold-deep:#B38600;--red:#A6182E;--green:#2F9E5B;--blue:#2C6E9E;--orange:#B36A1E;--text:#1F1B15;--muted:#7A6C58;}
 body{background:var(--bg);color:var(--text);font-family:'Manrope',Arial,sans-serif;min-height:100vh;}
-header{background:var(--panel);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:relative;}
-header::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,var(--yellow),transparent 70%);}
-.logo{font-family:'Fraunces',serif;font-style:italic;font-weight:700;font-size:1.05rem;color:var(--yellow);letter-spacing:.2px;}
-.back{padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;text-decoration:none;}
+header{background:linear-gradient(135deg,#A6182E,#7A0F20);padding:10px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 3px 14px rgba(122,15,32,.2);}
+.logo{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.05rem;color:var(--yellow);letter-spacing:.2px;}
+.back{padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.15);color:#F7EFDD;font-size:0.75rem;font-weight:700;cursor:pointer;text-decoration:none;}
 .back:hover{border-color:var(--yellow);color:var(--yellow);}
-.welcome{font-size:0.78rem;color:var(--muted);}
-.logout{margin-left:auto;padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;}
-.logout:hover{border-color:var(--red);color:var(--red);}
+.welcome{font-size:0.78rem;color:#F7EFDD;opacity:.9;}
+.logout{margin-left:auto;padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.15);color:#F7EFDD;font-size:0.75rem;font-weight:700;cursor:pointer;}
+.logout:hover{border-color:#FFD9DF;color:#FFD9DF;}
 
 .wrap{max-width:760px;margin:0 auto;padding:24px 20px;}
-.box{background:linear-gradient(160deg,var(--card),var(--panel));border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:20px;}
-.box h2{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;color:var(--yellow);letter-spacing:.2px;margin-bottom:16px;}
+.box{background:var(--card);border:2px solid var(--border);border-radius:16px;padding:22px;margin-bottom:20px;box-shadow:0 2px 0 var(--border);}
+.box h2{font-family:'Baloo 2',sans-serif;font-size:1.15rem;font-weight:700;color:var(--red);letter-spacing:.2px;margin-bottom:16px;}
 .estado-banner{display:flex;align-items:center;gap:10px;padding:14px 18px;border-radius:12px;margin-bottom:20px;font-weight:700;}
-.estado-banner.abierto{background:#1a2b20;border:2px solid var(--green);color:var(--green);}
-.estado-banner.cerrado{background:var(--card);border:2px solid var(--border);color:var(--muted);}
+.estado-banner.abierto{background:#DFF3E6;border:2px solid var(--green);color:#1E7A45;}
+.estado-banner.cerrado{background:var(--bg);border:2px solid var(--border);color:var(--muted);}
 
 .field{margin-bottom:14px;}
 .field label{font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;}
-.field input,.field textarea{width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:8px;font-size:0.88rem;outline:none;font-family:inherit;}
-.field input:focus,.field textarea:focus{border-color:var(--yellow);}
+.field input,.field textarea{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:8px;font-size:0.88rem;outline:none;font-family:inherit;}
+.field input:focus,.field textarea:focus{border-color:var(--red);}
 .metodos-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px;}
-.metodo-box{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px;}
-.metodo-box label{font-size:0.7rem;font-weight:800;color:var(--yellow);text-transform:uppercase;display:block;margin-bottom:6px;}
+.metodo-box{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;}
+.metodo-box label{font-size:0.7rem;font-weight:800;color:var(--red);text-transform:uppercase;display:block;margin-bottom:6px;}
 .metodo-box input{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:7px;font-size:0.95rem;font-weight:700;outline:none;font-family:inherit;}
 .metodo-box .esperado{font-size:0.72rem;color:var(--muted);margin-top:6px;}
 .metodo-box .diferencia{font-size:0.78rem;font-weight:800;margin-top:4px;}
 .diferencia.ok{color:var(--green);}
 .diferencia.bad{color:var(--red);}
 
-.btn{width:100%;background:var(--yellow);color:#1a1408;border:none;padding:13px;border-radius:10px;font-size:0.95rem;font-weight:800;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;}
+.btn{width:100%;background:var(--yellow);color:#1F1B15;border:none;padding:13px;border-radius:10px;font-size:0.95rem;font-weight:800;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;}
 .btn:hover{transform:scale(1.01);}
 .btn.green{background:var(--green);color:#fff;}
 
-.hist-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:10px;}
+.hist-item{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:10px;}
 .hist-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
 .hist-cajero{font-weight:800;font-size:0.88rem;}
 .hist-fechas{font-size:0.7rem;color:var(--muted);}
