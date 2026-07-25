@@ -30,8 +30,8 @@ header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:10p
 .cli-puntos{font-size:1.6rem;font-weight:900;color:var(--green);}
 .cli-puntos-lbl{font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
 .cli-stats{font-size:0.72rem;color:var(--muted);margin-bottom:10px;line-height:1.6;}
-.cli-actions{display:flex;gap:8px;}
-.cli-actions button{flex:1;padding:8px;border-radius:8px;border:none;font-size:0.75rem;font-weight:700;cursor:pointer;}
+.cli-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.cli-actions button{flex:1;min-width:80px;padding:8px 6px;border-radius:8px;border:none;font-size:0.72rem;font-weight:700;cursor:pointer;}
 .btn-canje{background:var(--yellow);color:#000;}
 .btn-ajustar{background:var(--border);color:var(--text);}
 .empty{text-align:center;padding:50px 20px;color:var(--muted);grid-column:1/-1;}
@@ -48,6 +48,16 @@ header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:10p
 .canje-opt.disabled{opacity:.4;cursor:not-allowed;}
 .canje-opt span:first-child{font-weight:700;font-size:0.88rem;}
 .canje-opt span:last-child{color:var(--yellow);font-weight:800;}
+.hist-row{background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.hist-info{font-size:0.78rem;}
+.hist-detalle{color:var(--text);font-weight:700;}
+.hist-meta{color:var(--muted);font-size:0.7rem;margin-top:2px;}
+.hist-puntos{font-weight:800;font-size:0.85rem;white-space:nowrap;}
+.hist-puntos.pos{color:var(--green);}
+.hist-puntos.neg{color:var(--red);}
+.hist-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.85rem;flex-shrink:0;}
+.hist-del:hover{color:var(--red);}
+.hist-empty{text-align:center;color:var(--muted);padding:20px;font-size:0.8rem;}
 .adj-field{margin-bottom:12px;}
 .adj-field label{font-size:0.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:4px;}
 .adj-field input,.adj-field textarea{width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);padding:8px 11px;border-radius:8px;font-size:0.85rem;outline:none;font-family:inherit;}
@@ -116,6 +126,18 @@ header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:10p
   </div>
 </div>
 
+<!-- MODAL HISTORIAL -->
+<div class="overlay" id="histOverlay">
+  <div class="modal">
+    <h3>📜 Historial de puntos</h3>
+    <div class="modal-sub" id="histSub"></div>
+    <div class="canje-list" id="histList" style="max-height:340px;overflow-y:auto;"></div>
+    <div class="modal-actions">
+      <button class="mbtn-cancel" onclick="cerrarHistorial()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 var sess=JSON.parse(sessionStorage.getItem('bocao_sess')||'null');
 window.sess=sess;
@@ -123,7 +145,7 @@ if(!sess||sess.role!=='admin'){window.location.href='/login.html';}
 function logout(){sessionStorage.removeItem('bocao_sess');window.location.href='/login.html';}
 
 var PREMIOS=[{puntos:10,nombre:'Gaseosa'},{puntos:20,nombre:'Papas'},{puntos:35,nombre:'Perro'},{puntos:60,nombre:'Hamburguesa'},{puntos:100,nombre:'Combo'}];
-var clientes=[], clienteActivo=null;
+var clientes=[], clienteActivo=null, movimientos=[];
 
 function dirLabel(c){
   if(c.conjunto||c.torre||c.apartamento){
@@ -153,7 +175,7 @@ function render(){
       '<div class="cli-puntos">'+(c.puntos||0)+'</div>'+
       '<div class="cli-puntos-lbl">BocaPuntos disponibles</div>'+
       '<div class="cli-stats">Total acumulado: '+(c.totalAcumulado||0)+' · Total canjeado: '+(c.totalCanjeado||0)+'</div>'+
-      '<div class="cli-actions"><button class="btn-canje" onclick="abrirCanje(\''+c._id+'\')">🎁 Canjear</button><button class="btn-ajustar" onclick="abrirAjuste(\''+c._id+'\')">✏️ Ajustar</button></div>';
+      '<div class="cli-actions"><button class="btn-canje" onclick="abrirCanje(\''+c._id+'\')">🎁 Canjear</button><button class="btn-ajustar" onclick="abrirAjuste(\''+c._id+'\')">✏️ Ajustar</button><button class="btn-ajustar" onclick="abrirHistorial(\''+c._id+'\')">📜 Historial</button></div>';
     g.appendChild(card);
   });
 }
@@ -200,11 +222,44 @@ window.guardarAjuste=function(){
 };
 
 window.refrescarClientes=function(lista){ clientes=lista; render(); };
+window.refrescarMovimientos=function(lista){ movimientos=lista; };
+
+var TIPO_LABEL={acumulacion:'✅ Acumulación',canje:'🎁 Canje',ajuste_suma:'✏️ Ajuste (+)',ajuste_resta:'✏️ Ajuste (−)'};
+window.abrirHistorial=function(id){
+  clienteActivo=clientes.find(function(c){return c._id===id;});
+  if(!clienteActivo)return;
+  document.getElementById('histSub').textContent=dirLabel(clienteActivo)+' — balance actual: '+(clienteActivo.puntos||0)+' pts';
+  renderHistorial();
+  document.getElementById('histOverlay').classList.add('open');
+};
+window.cerrarHistorial=function(){document.getElementById('histOverlay').classList.remove('open');clienteActivo=null;};
+function renderHistorial(){
+  var mios=movimientos.filter(function(m){return m.clienteKey===clienteActivo.clienteKey;});
+  mios.sort(function(a,b){return new Date(b.fecha)-new Date(a.fecha);});
+  var list=document.getElementById('histList'); list.innerHTML='';
+  if(mios.length===0){list.innerHTML='<div class="hist-empty">Sin movimientos registrados.</div>';return;}
+  mios.forEach(function(m){
+    var esPositivo=(m.tipo==='acumulacion'||m.tipo==='ajuste_suma');
+    var fechaLbl=m.fecha?new Date(m.fecha).toLocaleString('es-CO',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
+    var row=document.createElement('div'); row.className='hist-row';
+    row.innerHTML='<div class="hist-info"><div class="hist-detalle">'+(TIPO_LABEL[m.tipo]||m.tipo)+'</div><div class="hist-meta">'+(m.detalle||'')+' · '+fechaLbl+'</div></div>'+
+      '<div class="hist-puntos '+(esPositivo?'pos':'neg')+'">'+(esPositivo?'+':'-')+m.puntos+'</div>'+
+      '<button class="hist-del" title="Eliminar este movimiento" onclick="eliminarMovimiento(\''+m._id+'\')">🗑</button>';
+    list.appendChild(row);
+  });
+}
+window.eliminarMovimiento=function(movId){
+  var mov=movimientos.find(function(m){return m._id===movId;});
+  if(!mov)return;
+  if(!confirm('¿Eliminar este movimiento de puntos? Se revertirá su efecto sobre el balance del cliente.'))return;
+  window._eliminarMovimientoPuntos(mov,clienteActivo._id);
+  setTimeout(renderHistorial,300);
+};
 </script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, updateDoc, increment, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, increment, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 var app=initializeApp({apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"});
 var db=getFirestore(app);
 
@@ -232,6 +287,23 @@ window._ajustarPuntos=function(c,delta,motivo){
     fecha:new Date().toISOString(), registradoPor:(window.sess&&window.sess.nombre)||'admin', fechaCreacion:serverTimestamp()
   }).catch(function(e){console.warn(e);});
 };
+
+// Revierte el efecto de un movimiento (acumulación, canje o ajuste) y lo elimina del historial
+window._eliminarMovimientoPuntos=function(mov,clienteId){
+  var esPositivo=(mov.tipo==='acumulacion'||mov.tipo==='ajuste_suma');
+  var delta=esPositivo?-mov.puntos:mov.puntos; // revertir: quita lo sumado, devuelve lo restado
+  var upd={puntos:increment(delta),fechaActualizacion:serverTimestamp()};
+  if(mov.tipo==='acumulacion') upd.totalAcumulado=increment(-mov.puntos);
+  if(mov.tipo==='canje') upd.totalCanjeado=increment(-mov.puntos);
+  updateDoc(doc(db,'clientes_puntos',clienteId),upd).catch(function(e){alert('Error: '+e.message);});
+  deleteDoc(doc(db,'puntos_movimientos',mov._id)).catch(function(e){alert('Error al eliminar: '+e.message);});
+};
+
+onSnapshot(collection(db,'puntos_movimientos'),function(snap){
+  var lista=[];
+  snap.forEach(function(d){lista.push(Object.assign({_id:d.id},d.data()));});
+  if(window.refrescarMovimientos) window.refrescarMovimientos(lista);
+});
 
 onSnapshot(collection(db,'clientes_puntos'),function(snap){
   var lista=[];
