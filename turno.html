@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Boca'o — Turno de Caja</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#0a0a0a;--panel:#141414;--card:#1a1a1a;--border:#2a2a2a;--yellow:#FFD700;--red:#CC0000;--green:#22c55e;--blue:#3b82f6;--orange:#f97316;--text:#f0f0f0;--muted:#666;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;}
+header{background:var(--panel);border-bottom:3px solid var(--yellow);padding:10px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.logo{font-size:1rem;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1px;}
+.back{padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;text-decoration:none;}
+.back:hover{border-color:var(--yellow);color:var(--yellow);}
+.welcome{font-size:0.78rem;color:var(--muted);}
+.logout{margin-left:auto;padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:0.75rem;font-weight:700;cursor:pointer;}
+.logout:hover{border-color:var(--red);color:var(--red);}
+
+.wrap{max-width:760px;margin:0 auto;padding:24px 20px;}
+.box{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:22px;margin-bottom:20px;}
+.box h2{font-size:1rem;color:var(--yellow);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;}
+.estado-banner{display:flex;align-items:center;gap:10px;padding:14px 18px;border-radius:12px;margin-bottom:20px;font-weight:700;}
+.estado-banner.abierto{background:#0f2a17;border:2px solid var(--green);color:var(--green);}
+.estado-banner.cerrado{background:#1a1a1a;border:2px solid var(--border);color:var(--muted);}
+
+.field{margin-bottom:14px;}
+.field label{font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;}
+.field input,.field textarea{width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:8px;font-size:0.88rem;outline:none;font-family:inherit;}
+.field input:focus,.field textarea:focus{border-color:var(--yellow);}
+.metodos-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px;}
+.metodo-box{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px;}
+.metodo-box label{font-size:0.7rem;font-weight:800;color:var(--yellow);text-transform:uppercase;display:block;margin-bottom:6px;}
+.metodo-box input{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:7px;font-size:0.95rem;font-weight:700;outline:none;font-family:inherit;}
+.metodo-box .esperado{font-size:0.72rem;color:var(--muted);margin-top:6px;}
+.metodo-box .diferencia{font-size:0.78rem;font-weight:800;margin-top:4px;}
+.diferencia.ok{color:var(--green);}
+.diferencia.bad{color:var(--red);}
+
+.btn{width:100%;background:var(--yellow);color:#000;border:none;padding:13px;border-radius:10px;font-size:0.95rem;font-weight:900;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;}
+.btn:hover{transform:scale(1.01);}
+.btn.green{background:var(--green);color:#fff;}
+
+.hist-item{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:10px;}
+.hist-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.hist-cajero{font-weight:800;font-size:0.88rem;}
+.hist-fechas{font-size:0.7rem;color:var(--muted);}
+.hist-diffs{display:flex;gap:14px;flex-wrap:wrap;font-size:0.75rem;}
+.hist-diffs span b{font-weight:800;}
+.empty{text-align:center;color:var(--muted);padding:20px;font-size:0.85rem;}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="panel.html">← Panel</a>
+  <div class="logo">🕐 Turno de Caja</div>
+  <div class="welcome" id="welcomeMsg"></div>
+  <button class="logout" onclick="logout()">Salir</button>
+</header>
+
+<div class="wrap">
+  <div id="estadoBanner"></div>
+
+  <!-- ABRIR TURNO -->
+  <div class="box" id="boxAbrir" style="display:none;">
+    <h2>Abrir turno</h2>
+    <div class="field">
+      <label>Nombre del responsable *</label>
+      <input type="text" id="aNombre" placeholder="Ej: Kelly"/>
+    </div>
+    <div class="metodos-grid">
+      <div class="metodo-box"><label>💵 Efectivo</label><input type="number" id="aEfectivo" placeholder="0"/></div>
+      <div class="metodo-box"><label>🏦 Bancolombia</label><input type="number" id="aTransferencia" placeholder="0"/></div>
+      <div class="metodo-box"><label>📱 Nequi</label><input type="number" id="aNequi" placeholder="0"/></div>
+      <div class="metodo-box"><label>🛵 Rappi</label><input type="number" id="aRappi" placeholder="0"/></div>
+    </div>
+    <div class="field">
+      <label>Observaciones</label>
+      <textarea id="aObs" rows="2" placeholder="Opcional"></textarea>
+    </div>
+    <button class="btn" onclick="abrirTurno()">Iniciar turno →</button>
+  </div>
+
+  <!-- CERRAR TURNO -->
+  <div class="box" id="boxCerrar" style="display:none;">
+    <h2>Cerrar turno</h2>
+    <div class="metodos-grid" id="cerrarGrid"></div>
+    <div class="field">
+      <label>Observaciones de cierre</label>
+      <textarea id="cObs" rows="2" placeholder="Opcional"></textarea>
+    </div>
+    <button class="btn green" onclick="cerrarTurno()">✅ Cerrar turno</button>
+  </div>
+
+  <div class="box">
+    <h2>Historial de turnos</h2>
+    <div id="historial"><div class="empty">Cargando...</div></div>
+  </div>
+</div>
+
+<script>
+var sess=JSON.parse(sessionStorage.getItem('bocao_sess')||'null');
+window.sess=sess;
+if(!sess||(sess.role!=='admin'&&sess.role!=='cajero')){window.location.href='/login.html';}
+else{ document.getElementById('welcomeMsg').textContent='Hola, '+sess.nombre; }
+function logout(){sessionStorage.removeItem('bocao_sess');window.location.href='/login.html';}
+
+var turnos=[], pedidos=[], turnoActivo=null;
+function fmt(n){return'$'+Math.round(n||0).toLocaleString('es-CO');}
+
+function calcularVentas(desde){
+  var v={efectivo:0,transferencia:0,nequi:0};
+  pedidos.forEach(function(p){
+    if(!p.metodoPago) return;
+    if(p.fecha && desde && p.fecha < desde) return;
+    if(p.metodoPago==='mixto'&&p.pagoMixto){
+      v.efectivo+=p.pagoMixto.efectivo||0;
+      v.transferencia+=p.pagoMixto.transferencia||0;
+    } else if(v.hasOwnProperty(p.metodoPago)){
+      v[p.metodoPago]+=p.total||0;
+    }
+  });
+  return v;
+}
+
+function render(){
+  var banner=document.getElementById('estadoBanner');
+  turnoActivo=turnos.find(function(t){return t.estado==='abierto';})||null;
+
+  if(turnoActivo){
+    banner.innerHTML='<div class="estado-banner abierto">🟢 Turno abierto — Responsable: '+turnoActivo.cajero+' · desde '+new Date(turnoActivo.fechaApertura).toLocaleString('es-CO')+'</div>';
+    document.getElementById('boxAbrir').style.display='none';
+    document.getElementById('boxCerrar').style.display='block';
+    renderCerrarGrid();
+  } else {
+    banner.innerHTML='<div class="estado-banner cerrado">⚪ No hay ningún turno abierto en este momento.</div>';
+    document.getElementById('boxAbrir').style.display='block';
+    document.getElementById('boxCerrar').style.display='none';
+  }
+  renderHistorial();
+}
+
+function renderCerrarGrid(){
+  var ventas=calcularVentas(turnoActivo.fechaApertura);
+  var fi=turnoActivo.fondoInicial||{};
+  var metodos=[
+    {key:'efectivo',label:'💵 Efectivo',auto:true},
+    {key:'transferencia',label:'🏦 Bancolombia',auto:true},
+    {key:'nequi',label:'📱 Nequi',auto:true},
+    {key:'rappi',label:'🛵 Rappi',auto:false}
+  ];
+  var g=document.getElementById('cerrarGrid'); g.innerHTML='';
+  metodos.forEach(function(m){
+    var esperado=(fi[m.key]||0)+(m.auto?(ventas[m.key]||0):0);
+    var box=document.createElement('div'); box.className='metodo-box';
+    box.innerHTML='<label>'+m.label+'</label>'+
+      '<input type="number" id="c_'+m.key+'" placeholder="Conteo real" oninput="actualizarDiferencia(\''+m.key+'\','+esperado+')"/>'+
+      '<div class="esperado">Debería haber: '+fmt(esperado)+'</div>'+
+      '<div class="diferencia" id="dif_'+m.key+'"></div>';
+    g.appendChild(box);
+  });
+}
+
+window.actualizarDiferencia=function(key,esperado){
+  var v=parseFloat(document.getElementById('c_'+key).value);
+  var el=document.getElementById('dif_'+key);
+  if(isNaN(v)){el.textContent='';return;}
+  var diff=v-esperado;
+  if(diff===0){el.textContent='✅ Cuadra exacto';el.className='diferencia ok';}
+  else if(diff>0){el.textContent='Sobra '+fmt(diff);el.className='diferencia bad';}
+  else{el.textContent='Falta '+fmt(Math.abs(diff));el.className='diferencia bad';}
+};
+
+window.abrirTurno=function(){
+  var nombre=document.getElementById('aNombre').value.trim();
+  if(!nombre){alert('Ingresa el nombre del responsable del turno.');return;}
+  var data={
+    cajero:nombre,
+    fondoInicial:{
+      efectivo:parseFloat(document.getElementById('aEfectivo').value)||0,
+      transferencia:parseFloat(document.getElementById('aTransferencia').value)||0,
+      nequi:parseFloat(document.getElementById('aNequi').value)||0,
+      rappi:parseFloat(document.getElementById('aRappi').value)||0
+    },
+    observacionesApertura:document.getElementById('aObs').value.trim(),
+    estado:'abierto',
+    fechaApertura:new Date().toISOString(),
+    abiertoPor:sess.nombre
+  };
+  window._abrirTurno(data);
+};
+
+window.cerrarTurno=function(){
+  var ventas=calcularVentas(turnoActivo.fechaApertura);
+  var fi=turnoActivo.fondoInicial||{};
+  var metodos=['efectivo','transferencia','nequi','rappi'];
+  var conteoFinal={}, esperado={}, diferencia={};
+  var faltaAlgo=false;
+  metodos.forEach(function(k){
+    var v=document.getElementById('c_'+k).value;
+    if(v===''){faltaAlgo=true;}
+    conteoFinal[k]=parseFloat(v)||0;
+    esperado[k]=(fi[k]||0)+(k!=='rappi'?(ventas[k]||0):0);
+    diferencia[k]=conteoFinal[k]-esperado[k];
+  });
+  if(faltaAlgo&&!confirm('Falta contar algún método de pago (quedará en $0). ¿Continuar de todas formas?'))return;
+  if(!confirm('¿Cerrar el turno de '+turnoActivo.cajero+'? Esta acción no se puede deshacer.'))return;
+  window._cerrarTurno(turnoActivo._id,{
+    estado:'cerrado',
+    fechaCierre:new Date().toISOString(),
+    ventasCalculadas:ventas,
+    esperado:esperado,
+    conteoFinal:conteoFinal,
+    diferencia:diferencia,
+    observacionesCierre:document.getElementById('cObs').value.trim(),
+    cerradoPor:sess.nombre
+  });
+};
+
+function renderHistorial(){
+  var el=document.getElementById('historial');
+  var cerrados=turnos.filter(function(t){return t.estado==='cerrado';});
+  cerrados.sort(function(a,b){return new Date(b.fechaCierre)-new Date(a.fechaCierre);});
+  if(cerrados.length===0){el.innerHTML='<div class="empty">Sin turnos cerrados todavía.</div>';return;}
+  el.innerHTML='';
+  cerrados.slice(0,20).forEach(function(t){
+    var d=t.diferencia||{};
+    var diffsHTML=['efectivo','transferencia','nequi','rappi'].map(function(k){
+      var v=d[k]||0;
+      var lbl={efectivo:'Efectivo',transferencia:'Bancolombia',nequi:'Nequi',rappi:'Rappi'}[k];
+      var cls=v===0?'':(v<0?'style="color:var(--red)"':'style="color:var(--orange)"');
+      return '<span '+cls+'>'+lbl+': <b>'+(v>=0?'+':'')+Math.round(v).toLocaleString('es-CO')+'</b></span>';
+    }).join('');
+    var item=document.createElement('div'); item.className='hist-item';
+    item.innerHTML='<div class="hist-top"><span class="hist-cajero">'+t.cajero+'</span><span class="hist-fechas">'+new Date(t.fechaApertura).toLocaleString('es-CO')+' → '+new Date(t.fechaCierre).toLocaleString('es-CO')+'</span></div><div class="hist-diffs">'+diffsHTML+'</div>';
+    el.appendChild(item);
+  });
+}
+
+window.refrescarTurnos=function(lista){ turnos=lista; render(); };
+window.refrescarPedidosTurno=function(lista){ pedidos=lista; if(turnoActivo) renderCerrarGrid(); };
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+var app=initializeApp({apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"});
+var db=getFirestore(app);
+
+window._abrirTurno=function(data){
+  addDoc(collection(db,'turnos'),Object.assign({},data,{fechaCreacion:serverTimestamp()})).catch(function(e){alert('Error: '+e.message);});
+};
+window._cerrarTurno=function(id,data){
+  updateDoc(doc(db,'turnos',id),data).catch(function(e){alert('Error: '+e.message);});
+};
+
+onSnapshot(collection(db,'turnos'),function(snap){
+  var lista=[];
+  snap.forEach(function(d){lista.push(Object.assign({_id:d.id},d.data()));});
+  if(window.refrescarTurnos) window.refrescarTurnos(lista);
+});
+onSnapshot(collection(db,'pedidos'),function(snap){
+  var lista=[];
+  snap.forEach(function(d){lista.push(d.data());});
+  if(window.refrescarPedidosTurno) window.refrescarPedidosTurno(lista);
+});
+</script>
+</body>
+</html>
