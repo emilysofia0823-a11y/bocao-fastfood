@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Boca'o POS</title>
-<script>(function(){var s=JSON.parse(sessionStorage.getItem('bocao_sess')||'null');if(!s||s.role!=='admin'){window.location.href='/login.html';}})();</script>
+<script>(function(){var s=JSON.parse(sessionStorage.getItem('bocao_sess')||'null');if(!s||(s.role!=='admin'&&s.role!=='cajero')){window.location.href='/login.html';}})();</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{--bg:#0d0d0d;--panel:#161616;--card:#1e1e1e;--border:#2a2a2a;--yellow:#FFD700;--red:#CC0000;--green:#22c55e;--blue:#3b82f6;--text:#f0f0f0;--muted:#777;}
@@ -245,9 +245,11 @@ header::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
   </div>
   <div class="header-links">
     <button class="hlink" onclick="abrirCobrarPanel()" id="cobrarHeaderBtn" style="position:relative;">💰 Cobrar <span id="cobrarBadge" style="display:none;background:#22c55e;color:#000;font-size:0.65rem;font-weight:900;border-radius:50%;width:16px;height:16px;line-height:16px;text-align:center;position:absolute;top:-4px;right:-4px;"></span></button>
-    <a class="hlink" href="ordenes.html" target="_blank">📋 Órdenes</a>
-    <a class="hlink" href="platos.html" target="_blank">🍽️ Platos</a>
-    <a class="hlink" href="clientes.html" target="_blank">🏆 Puntos</a>
+    <a class="hlink admin-only-link" href="ordenes.html" target="_blank">📋 Órdenes</a>
+    <a class="hlink admin-only-link" href="platos.html" target="_blank">🍽️ Platos</a>
+    <a class="hlink admin-only-link" href="clientes.html" target="_blank">🏆 Puntos</a>
+    <a class="hlink" href="turno.html" target="_blank">🕐 Turno</a>
+    <a class="hlink" href="panel.html">← Panel</a>
   </div>
 </header>
 
@@ -457,6 +459,11 @@ header::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
 
 <script src="recetas.js"></script>
 <script>
+var sess=JSON.parse(sessionStorage.getItem('bocao_sess')||'null');
+window.sess=sess;
+if(sess&&sess.role!=='admin'){
+  document.querySelectorAll('.admin-only-link').forEach(function(el){el.style.display='none';});
+}
 // El menú ahora se carga desde Firestore (colección "productos"), editable desde platos.html.
 var CAT_ORDEN=['🍔 Hamburguesas','🌭 Perros Calientes','🍟 Salchipapas','🎁 Combos','➕ Adicionales','🥤 Bebidas','🎉 Promociones'];
 var MENU = {};
@@ -494,6 +501,10 @@ var PREMIOS_BOCAPUNTOS=[
 // localStorage queda solo como respaldo si no hay conexión con Firestore.
 var confirmando=false;
 function nextNumLocalFallback(){ pedidoNum++; localStorage.setItem('bocao_num',pedidoNum); return pedidoNum; }
+function nombreCajeroActivo(){
+  if(window._turnoActivo&&window._turnoActivo.cajero) return window._turnoActivo.cajero;
+  return (sess&&sess.nombre)||'Cajero';
+}
 async function obtenerSiguienteNumero(){
   if(window._nextNumero){
     try{ return await window._nextNumero(); }
@@ -717,7 +728,7 @@ async function confirmar(){
     pedidoNum=numeroAsignado;
     document.getElementById('pedidoNumVal').textContent=numeroAsignado+1;
     var pedido={
-      numero:numeroAsignado, tipo:tipo, estadoEntrega:'pendiente', cajero:'Kelly',
+      numero:numeroAsignado, tipo:tipo, estadoEntrega:'pendiente', cajero:nombreCajeroActivo(),
       cliente:{nombre:document.getElementById('cNombre').value.trim(),telefono:'',direccion:'',barrio:bp[0]||'',costoEnvio:costoEnvio},
       items:cart.map(function(i){return{nombre:i.name,variante:i.variant==='Precio'?'':i.variant,precio:i.price,cantidad:i.qty,notas:i.notas};}),
       notasGenerales:document.getElementById('notasGen').value.trim(),
@@ -1078,6 +1089,13 @@ try {
       }).catch(function(e){console.warn('puntos-mov',e);});
     }
   };
+  // Turno activo: quién es el responsable de caja en este momento
+  window._turnoActivo=null;
+  onSnapshot(collection(db,'turnos'),function(snap){
+    var abierto=null;
+    snap.forEach(function(d){ var t=d.data(); if(t.estado==='abierto') abierto=Object.assign({_id:d.id},t); });
+    window._turnoActivo=abierto;
+  });
   // Menú (platos): se edita desde platos.html, se refleja aquí en tiempo real
   onSnapshot(collection(db,'productos'),function(snap){
     var productos=[];
