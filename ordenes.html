@@ -153,6 +153,7 @@ window._reimprimir=function(p){
     tipo:'factura', numero:p.numero, tipoPedido:p.tipo, cajero:p.cajero,
     cliente:p.cliente||{}, items:p.items||[], notasGenerales:p.notasGenerales||'',
     subtotal:p.subtotal||0, costoEnvio:p.costoEnvio||0, total:p.total||0, metodoPago:p.metodoPago||null,
+    bocaPuntos:p.bocaPuntos||null,
     estado:'pendiente', fecha:new Date().toISOString(), fechaCreacion:serverTimestamp()
   }).catch(function(e){alert('Error al reimprimir: '+e.message);});
 };
