@@ -529,7 +529,14 @@ function nombreCajeroActivo(){
 }
 async function obtenerSiguienteNumero(){
   if(window._nextNumero){
-    try{ return await window._nextNumero(); }
+    try{
+      var timeoutMarker={};
+      var timeout=new Promise(function(resolve){ setTimeout(function(){ resolve(timeoutMarker); },5000); });
+      var resultado=await Promise.race([window._nextNumero(), timeout]);
+      if(resultado!==timeoutMarker) return resultado;
+      console.warn('Numeración remota tardó demasiado (posible conexión lenta), usando respaldo local');
+      return nextNumLocalFallback();
+    }
     catch(e){ console.warn('Fallo numeración remota, usando respaldo local:',e); return nextNumLocalFallback(); }
   }
   return nextNumLocalFallback();
