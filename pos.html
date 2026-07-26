@@ -881,6 +881,7 @@ function enviarImpresionRemota(tipo,p){
     tipo:tipo, numero:p.numero, tipoPedido:p.tipo, cajero:p.cajero,
     cliente:p.cliente, items:p.items, notasGenerales:p.notasGenerales||'',
     subtotal:p.subtotal, costoEnvio:p.costoEnvio||0, total:p.total, metodoPago:p.metodoPago||null,
+    bocaPuntos:p.bocaPuntos||null,
     estado:'pendiente', fecha:new Date().toISOString()
   };
   window._addTrabajoImpresion(job);
