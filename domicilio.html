@@ -305,7 +305,7 @@ window.marcar = function(id, estado){
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, doc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 var app = initializeApp({
   apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",
@@ -327,14 +327,14 @@ window._startListen = function(){
   var txt = document.getElementById('statusTxt');
   var hoy = new Date(); hoy.setHours(0,0,0,0);
 
-  onSnapshot(collection(db,'pedidos'), function(snap){
+  var qHoy = query(collection(db,'pedidos'), where('fecha','>=',hoy.toISOString()));
+  onSnapshot(qHoy, function(snap){
     dot.classList.add('on'); txt.textContent = 'En vivo ✓';
     pedidos = [];
     snap.forEach(function(d){
       var p = d.data();
       // SOLO domicilios activos de hoy — sin datos de admin
       if(p.tipo !== 'domicilio') return;
-      if(p.fecha && new Date(p.fecha) < hoy) return; // de otro día
       // Solo campos necesarios para el domiciliario — sin totales de negocio
       pedidos.push({
         _id: d.id,
