@@ -50,6 +50,23 @@ header{background:linear-gradient(135deg,#A6182E,#7A0F20);padding:10px 20px;disp
 .hist-diffs{display:flex;gap:14px;flex-wrap:wrap;font-size:0.75rem;}
 .hist-diffs span b{font-weight:800;}
 .empty{text-align:center;color:var(--muted);padding:20px;font-size:0.85rem;}
+.report-fab{position:fixed;bottom:18px;right:18px;width:52px;height:52px;border-radius:50%;background:var(--red);color:#fff;border:none;font-size:1.4rem;cursor:pointer;box-shadow:0 6px 18px rgba(122,15,32,.4);z-index:500;}
+.report-fab:hover{background:#7A0F20;}
+.report-overlay{position:fixed;inset:0;background:rgba(31,27,21,.55);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px;}
+.report-overlay.show{display:flex;}
+.report-box{background:#FFFFFF;border-radius:18px;padding:20px;width:100%;max-width:380px;box-shadow:0 20px 50px rgba(0,0,0,.3);}
+.report-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.report-head h3{font-family:'Baloo 2',sans-serif;color:var(--red);font-size:1.05rem;}
+.report-close{background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted);}
+.report-tipos{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.report-tipo{flex:1;min-width:90px;padding:8px 6px;border-radius:10px;border:2px solid var(--border);background:var(--bg);color:var(--muted);font-size:0.72rem;font-weight:700;cursor:pointer;}
+.report-tipo.active{border-color:var(--red);color:var(--red);background:#fff;}
+#reportDesc,#reportNombre{width:100%;border:2px solid var(--border);border-radius:10px;padding:10px;font-family:inherit;font-size:0.85rem;margin-bottom:10px;background:var(--bg);color:var(--text);resize:vertical;}
+.report-urgente{display:flex;align-items:center;gap:6px;font-size:0.78rem;color:var(--text);margin-bottom:14px;cursor:pointer;}
+.report-send{width:100%;background:var(--yellow);color:#1F1B15;border:none;padding:12px;border-radius:10px;font-weight:800;font-size:0.9rem;cursor:pointer;}
+.report-send:hover{background:var(--gold-deep);color:#fff;}
+#reportOk{text-align:center;padding:20px 0;}
+.report-ok-icon{font-size:2.4rem;margin-bottom:8px;}
 </style>
 </head>
 <body>
@@ -107,12 +124,65 @@ header{background:linear-gradient(135deg,#A6182E,#7A0F20);padding:10px 20px;disp
   </div>
 </div>
 
+<button class="report-fab" onclick="abrirReporte()" title="Reportar un problema o sugerencia">🛠️</button>
+<div class="report-overlay" id="reportOverlay">
+  <div class="report-box">
+    <div class="report-head">
+      <h3>🛠️ Reportar algo</h3>
+      <button class="report-close" onclick="cerrarReporte()">✕</button>
+    </div>
+    <div id="reportForm">
+      <div class="report-tipos">
+        <button type="button" class="report-tipo active" data-tipo="falla" onclick="elegirTipoReporte(this)">⚠️ No funciona</button>
+        <button type="button" class="report-tipo" data-tipo="sugerencia" onclick="elegirTipoReporte(this)">💡 Sugerencia</button>
+        <button type="button" class="report-tipo" data-tipo="duda" onclick="elegirTipoReporte(this)">❓ Duda</button>
+      </div>
+      <textarea id="reportDesc" rows="4" placeholder="Cuéntanos qué pasó o qué te gustaría mejorar..."></textarea>
+      <input type="text" id="reportNombre" placeholder="Tu nombre"/>
+      <label class="report-urgente"><input type="checkbox" id="reportUrgente"/> 🔴 Es urgente, no puedo seguir trabajando</label>
+      <button class="report-send" onclick="enviarReporte()">Enviar reporte</button>
+    </div>
+    <div id="reportOk" style="display:none;">
+      <div class="report-ok-icon">✅</div>
+      <p>¡Gracias! Tu reporte fue enviado.</p>
+    </div>
+  </div>
+</div>
+
 <script>
 var sess=JSON.parse(sessionStorage.getItem('bocao_sess')||'null');
 window.sess=sess;
 if(!sess||(sess.role!=='admin'&&sess.role!=='cajero')){window.location.href='/login.html';}
 else{ document.getElementById('welcomeMsg').textContent='Hola, '+sess.nombre; }
 function logout(){sessionStorage.removeItem('bocao_sess');window.location.href='/login.html';}
+
+// ── Reportar un problema/sugerencia/duda ──
+var reportTipoSel='falla';
+function elegirTipoReporte(btn){
+  document.querySelectorAll('.report-tipo').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  reportTipoSel=btn.dataset.tipo;
+}
+function abrirReporte(){
+  document.getElementById('reportForm').style.display='block';
+  document.getElementById('reportOk').style.display='none';
+  var nombreInput=document.getElementById('reportNombre');
+  if(!nombreInput.value && sess && sess.nombre) nombreInput.value=sess.nombre;
+  document.getElementById('reportOverlay').classList.add('show');
+}
+function cerrarReporte(){ document.getElementById('reportOverlay').classList.remove('show'); }
+function enviarReporte(){
+  var desc=document.getElementById('reportDesc').value.trim();
+  if(!desc){ alert('Escribe una descripción'); return; }
+  var nombre=document.getElementById('reportNombre').value.trim()||'Sin nombre';
+  var urgente=document.getElementById('reportUrgente').checked;
+  if(window._enviarReporte) window._enviarReporte({tipo:reportTipoSel,descripcion:desc,reportadoPor:nombre,urgente:urgente,pagina:'turno.html'});
+  document.getElementById('reportForm').style.display='none';
+  document.getElementById('reportOk').style.display='block';
+  document.getElementById('reportDesc').value='';
+  document.getElementById('reportUrgente').checked=false;
+  setTimeout(cerrarReporte,1800);
+}
 
 var turnos=[], pedidos=[], turnoActivo=null;
 function fmt(n){return'$'+Math.round(n||0).toLocaleString('es-CO');}
@@ -272,6 +342,12 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getFirestore, collection, addDoc, doc, updateDoc, onSnapshot, serverTimestamp, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 var app=initializeApp({apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"});
 var db=getFirestore(app);
+
+window._enviarReporte=function(data){
+  addDoc(collection(db,'reportes'),Object.assign({},data,{
+    estado:'nuevo',fecha:new Date().toISOString(),fechaCreacion:serverTimestamp()
+  })).catch(function(e){console.error('Error enviando reporte:',e);});
+};
 
 window._abrirTurno=function(data){
   addDoc(collection(db,'turnos'),Object.assign({},data,{fechaCreacion:serverTimestamp()})).catch(function(e){alert('Error: '+e.message);});
