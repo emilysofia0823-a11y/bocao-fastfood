@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Boca'o — Soporte</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#F7EFDD;--panel:#FFFFFF;--card:#FFFFFF;--border:#E8D9B8;--yellow:#F2B705;--gold-deep:#B38600;--red:#A6182E;--green:#2F9E5B;--blue:#2C6E9E;--orange:#B36A1E;--text:#1F1B15;--muted:#7A6C58;}
+body{background:var(--bg);color:var(--text);font-family:'Manrope',Arial,sans-serif;min-height:100vh;}
+header{background:linear-gradient(135deg,#A6182E,#7A0F20);padding:10px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 3px 14px rgba(122,15,32,.2);}
+.logo{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.05rem;color:var(--yellow);letter-spacing:.2px;}
+.back{padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.15);color:#F7EFDD;font-size:0.75rem;font-weight:700;cursor:pointer;text-decoration:none;}
+.back:hover{border-color:var(--yellow);color:var(--yellow);}
+.logout{margin-left:auto;padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.15);color:#F7EFDD;font-size:0.75rem;font-weight:700;cursor:pointer;}
+.logout:hover{border-color:#FFD9DF;color:#FFD9DF;}
+
+.filter-bar{padding:12px 20px;display:flex;gap:8px;flex-wrap:wrap;background:var(--panel);border-bottom:2px solid var(--border);}
+.fb{padding:7px 16px;border-radius:50px;border:2px solid var(--border);background:var(--bg);color:var(--muted);font-size:0.78rem;font-weight:700;cursor:pointer;transition:all .2s;}
+.fb.active{border-color:var(--red);color:var(--red);background:#fff;}
+.count{background:var(--yellow);color:#1F1B15;font-size:0.68rem;font-weight:900;border-radius:50px;padding:1px 7px;margin-left:4px;}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;padding:18px 20px;}
+.card{background:var(--card);border:2px solid var(--border);border-radius:16px;overflow:hidden;transition:box-shadow .2s;box-shadow:0 2px 0 var(--border);}
+.card:hover{box-shadow:0 8px 18px rgba(122,15,32,.15);}
+.card.urgente{border-color:var(--red);box-shadow:0 2px 0 var(--red);}
+.card.resuelto{opacity:.7;}
+.card-head{padding:10px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--bg);}
+.tipo-tag{font-size:0.7rem;font-weight:700;padding:3px 9px;border-radius:50px;}
+.t-falla{background:#FCEBD5;color:var(--orange);}
+.t-sugerencia{background:#FCF0CC;color:var(--gold-deep);}
+.t-duda{background:#DCEBF5;color:#1E5A80;}
+.urg-tag{font-size:0.68rem;font-weight:800;padding:3px 9px;border-radius:50px;background:var(--red);color:#fff;}
+.estado-tag{font-size:0.68rem;font-weight:700;padding:3px 9px;border-radius:50px;margin-left:auto;}
+.e-nuevo{background:#FCEBD5;color:var(--orange);}
+.e-en_revision{background:#DCEBF5;color:var(--blue);}
+.e-resuelto{background:#DFF3E6;color:var(--green);}
+.hora{font-size:0.68rem;color:var(--muted);width:100%;}
+.card-body{padding:10px 14px 14px;}
+.desc{font-size:0.88rem;line-height:1.5;margin-bottom:8px;}
+.meta{font-size:0.75rem;color:var(--muted);margin-bottom:10px;}
+.meta strong{color:var(--text);}
+.respuesta-box{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:0.8rem;margin-bottom:10px;}
+.respuesta-box b{color:var(--red);}
+.card-actions{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+.card-actions button{flex:1;min-width:100px;padding:8px 6px;border-radius:8px;border:none;font-size:0.72rem;font-weight:700;cursor:pointer;}
+.btn-revision{background:var(--blue);color:#fff;}
+.btn-resuelto{background:var(--green);color:#fff;}
+.btn-eliminar{background:var(--border);color:var(--text);}
+.respond-wrap{display:flex;gap:6px;}
+.respond-wrap input{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:8px;font-size:0.8rem;outline:none;font-family:inherit;}
+.respond-wrap input:focus{border-color:var(--red);}
+.respond-wrap button{background:var(--yellow);color:#1F1B15;border:none;padding:0 14px;border-radius:8px;font-weight:800;font-size:0.78rem;cursor:pointer;}
+.empty{text-align:center;padding:50px 20px;color:var(--muted);grid-column:1/-1;}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="panel.html">← Panel</a>
+  <div class="logo">🛠️ Soporte — Reportes del equipo</div>
+  <button class="logout" onclick="logout()">Salir</button>
+</header>
+<div class="filter-bar">
+  <button class="fb active" id="fAll" onclick="setF('all')">Todos <span class="count" id="cAll">0</span></button>
+  <button class="fb" id="fNuevo" onclick="setF('nuevo')">🟠 Nuevos <span class="count" id="cNuevo">0</span></button>
+  <button class="fb" id="fUrgente" onclick="setF('urgente')">🔴 Urgentes <span class="count" id="cUrgente">0</span></button>
+  <button class="fb" id="fResuelto" onclick="setF('resuelto')">✅ Resueltos <span class="count" id="cResuelto">0</span></button>
+</div>
+<div class="grid" id="grid"><div class="empty">Cargando reportes...</div></div>
+
+<script>
+var sess=JSON.parse(sessionStorage.getItem('bocao_sess')||'null');
+if(!sess||sess.role!=='admin'){window.location.href='/login.html';}
+function logout(){sessionStorage.removeItem('bocao_sess');window.location.href='/login.html';}
+
+var TIPO_LABEL={falla:'⚠️ No funciona',sugerencia:'💡 Sugerencia',duda:'❓ Duda'};
+var ESTADO_LABEL={nuevo:'🟠 Nuevo',en_revision:'🔎 En revisión',resuelto:'✅ Resuelto'};
+var PAGINA_LABEL={'pos.html':'Caja (POS)','turno.html':'Turno','domicilio.html':'Domicilios'};
+
+var todos=[], filtro='all';
+
+function setF(f){
+  filtro=f;
+  ['fAll','fNuevo','fUrgente','fResuelto'].forEach(function(id){document.getElementById(id).classList.remove('active');});
+  document.getElementById('f'+f.charAt(0).toUpperCase()+f.slice(1)).classList.add('active');
+  render();
+}
+
+function fmtFecha(iso){
+  if(!iso) return '';
+  var d=new Date(iso);
+  return d.toLocaleDateString('es-CO',{day:'2-digit',month:'short'})+' · '+d.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+}
+
+function render(){
+  var lista=todos.slice();
+  if(filtro==='nuevo') lista=lista.filter(function(r){return r.estado==='nuevo';});
+  else if(filtro==='urgente') lista=lista.filter(function(r){return r.urgente;});
+  else if(filtro==='resuelto') lista=lista.filter(function(r){return r.estado==='resuelto';});
+
+  document.getElementById('cAll').textContent=todos.length;
+  document.getElementById('cNuevo').textContent=todos.filter(function(r){return r.estado==='nuevo';}).length;
+  document.getElementById('cUrgente').textContent=todos.filter(function(r){return r.urgente&&r.estado!=='resuelto';}).length;
+  document.getElementById('cResuelto').textContent=todos.filter(function(r){return r.estado==='resuelto';}).length;
+
+  var el=document.getElementById('grid');
+  if(lista.length===0){ el.innerHTML='<div class="empty">Sin reportes en esta categoría.</div>'; return; }
+  el.innerHTML='';
+  lista.forEach(function(r){
+    var card=document.createElement('div');
+    card.className='card'+(r.urgente&&r.estado!=='resuelto'?' urgente':'')+(r.estado==='resuelto'?' resuelto':'');
+    card.innerHTML=
+      '<div class="card-head">'+
+        '<span class="tipo-tag t-'+r.tipo+'">'+(TIPO_LABEL[r.tipo]||r.tipo)+'</span>'+
+        (r.urgente?'<span class="urg-tag">🔴 Urgente</span>':'')+
+        '<span class="estado-tag e-'+r.estado+'">'+(ESTADO_LABEL[r.estado]||r.estado)+'</span>'+
+        '<div class="hora">'+fmtFecha(r.fecha)+'</div>'+
+      '</div>'+
+      '<div class="card-body">'+
+        '<div class="desc">'+escapeHtml(r.descripcion)+'</div>'+
+        '<div class="meta"><strong>'+escapeHtml(r.reportadoPor||'Sin nombre')+'</strong> · '+(PAGINA_LABEL[r.pagina]||r.pagina||'')+'</div>'+
+        (r.respuesta?'<div class="respuesta-box"><b>Respuesta:</b> '+escapeHtml(r.respuesta)+'</div>':'')+
+        '<div class="card-actions">'+
+          (r.estado!=='en_revision'&&r.estado!=='resuelto'?'<button class="btn-revision" onclick="cambiarEstado(\''+r._id+'\',\'en_revision\')">🔎 En revisión</button>':'')+
+          (r.estado!=='resuelto'?'<button class="btn-resuelto" onclick="cambiarEstado(\''+r._id+'\',\'resuelto\')">✅ Marcar resuelto</button>':'')+
+          '<button class="btn-eliminar" onclick="eliminarReporte(\''+r._id+'\')">🗑 Eliminar</button>'+
+        '</div>'+
+        '<div class="respond-wrap">'+
+          '<input type="text" placeholder="Responder al equipo..." id="resp_'+r._id+'" value="'+escapeAttr(r.respuesta||'')+'"/>'+
+          '<button onclick="responder(\''+r._id+'\')">Guardar</button>'+
+        '</div>'+
+      '</div>';
+    el.appendChild(card);
+  });
+}
+function escapeHtml(s){var d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+function escapeAttr(s){return (s||'').replace(/"/g,'&quot;');}
+
+function cambiarEstado(id,estado){ if(window._actualizarReporte) window._actualizarReporte(id,{estado:estado}); }
+function responder(id){
+  var val=document.getElementById('resp_'+id).value.trim();
+  if(window._actualizarReporte) window._actualizarReporte(id,{respuesta:val,estado:'en_revision'});
+}
+function eliminarReporte(id){
+  if(!confirm('¿Eliminar este reporte?')) return;
+  if(window._eliminarReporte) window._eliminarReporte(id);
+}
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+var app=initializeApp({apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"});
+var db=getFirestore(app);
+
+window._actualizarReporte=function(id,data){
+  updateDoc(doc(db,'reportes',id),data).catch(function(e){alert('Error: '+e.message);});
+};
+window._eliminarReporte=function(id){
+  deleteDoc(doc(db,'reportes',id)).catch(function(e){alert('Error: '+e.message);});
+};
+
+onSnapshot(collection(db,'reportes'),function(snap){
+  var lista=[];
+  snap.forEach(function(d){ lista.push(Object.assign({_id:d.id},d.data())); });
+  lista.sort(function(a,b){ return new Date(b.fecha||0)-new Date(a.fecha||0); });
+  window.todos=lista;
+  if(window.render) window.render();
+});
+</script>
+</body>
+</html>
