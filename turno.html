@@ -269,7 +269,7 @@ window.refrescarPedidosTurno=function(lista){ pedidos=lista; renderResumenHoy();
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, doc, updateDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, onSnapshot, serverTimestamp, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 var app=initializeApp({apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"});
 var db=getFirestore(app);
 
@@ -285,7 +285,10 @@ onSnapshot(collection(db,'turnos'),function(snap){
   snap.forEach(function(d){lista.push(Object.assign({_id:d.id},d.data()));});
   if(window.refrescarTurnos) window.refrescarTurnos(lista);
 });
-onSnapshot(collection(db,'pedidos'),function(snap){
+// Solo pedidos de HOY (un solo where, sin orderBy = no requiere indice compuesto)
+var hoyTurno=new Date(); hoyTurno.setHours(0,0,0,0);
+var qPedidosHoy=query(collection(db,'pedidos'),where('fecha','>=',hoyTurno.toISOString()));
+onSnapshot(qPedidosHoy,function(snap){
   var lista=[];
   snap.forEach(function(d){lista.push(d.data());});
   if(window.refrescarPedidosTurno) window.refrescarPedidosTurno(lista);
