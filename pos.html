@@ -1149,15 +1149,16 @@ try {
     snap.forEach(function(d){ var p=d.data(); if(p.nombre) m[normIng(p.nombre)]=d.id; });
     window._invMap=m;
   });
-  // Escuchar TODOS los pedidos, filtrar en JS (no usar where+orderBy = requiere índice compuesto)
+  // Solo pedidos de HOY (un solo where, sin orderBy = no requiere índice compuesto).
+  // Antes traía la colección completa: entre más crece el historial, más lento cargaba el POS.
   var hoy=new Date(); hoy.setHours(0,0,0,0);
-  onSnapshot(collection(db,'pedidos'),function(snap){
+  var qHoy=query(collection(db,'pedidos'),where('fecha','>=',hoy.toISOString()));
+  onSnapshot(qHoy,function(snap){
     ordenesActivas=[];
     snap.forEach(function(d){
       var p=d.data();
       if(p.estado==='pagado'||p.estadoEntrega==='entregado') return;
       if(p.metodoPago) return;
-      if(p.fecha && new Date(p.fecha)<hoy) return;
       ordenesActivas.push(Object.assign({_id:d.id,firestoreId:d.id},p));
     });
     ordenesActivas.sort(function(a,b){return(a.numero||0)-(b.numero||0);});
