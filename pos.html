@@ -17,6 +17,12 @@ header{background:linear-gradient(135deg,#A6182E,#7A0F20);padding:8px 16px;displ
 header::-webkit-scrollbar{height:4px;}
 header::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:10px;}
 .logo{font-family:'Baloo 2',sans-serif;font-weight:800;font-size:1.15rem;color:var(--yellow);letter-spacing:.2px;white-space:nowrap;flex-shrink:0;text-shadow:0 1px 0 rgba(0,0,0,.3);}
+.printer-status{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:50px;font-size:0.7rem;font-weight:700;white-space:nowrap;flex-shrink:0;background:rgba(0,0,0,.15);color:#F7EFDD;}
+.printer-status.on{background:rgba(47,158,91,.25);color:#C8F5D6;}
+.printer-status.off{background:rgba(230,60,60,.3);color:#FFD9D9;}
+.printer-status .dot{width:7px;height:7px;border-radius:50%;background:#999;flex-shrink:0;}
+.printer-status.on .dot{background:#3EDC7A;box-shadow:0 0 5px #3EDC7A;}
+.printer-status.off .dot{background:#FF5C5C;box-shadow:0 0 5px #FF5C5C;}
 .tipo-btns{display:flex;gap:6px;flex-shrink:0;}
 .tipo-btn{padding:6px 16px;border-radius:50px;border:2px solid rgba(255,255,255,.25);background:rgba(0,0,0,.15);color:#F7EFDD;font-weight:700;cursor:pointer;font-size:0.8rem;transition:all .2s;white-space:nowrap;flex-shrink:0;}
 .tipo-btn.active{background:var(--yellow);border-color:var(--yellow);color:#1F1B15;}
@@ -252,6 +258,7 @@ header::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:10
 
 <header>
   <div class="logo">🍔 Boca'o POS</div>
+  <div class="printer-status" id="printerStatus"><span class="dot"></span><span id="printerStatusText">Verificando impresora...</span></div>
   <div class="tipo-btns">
     <button class="tipo-btn active" id="btnDom" onclick="setTipo('domicilio')">🛵 Domicilio</button>
     <button class="tipo-btn" id="btnRec" onclick="setTipo('recoger')">🏃 Recoger</button>
@@ -1163,6 +1170,24 @@ try {
     });
     ordenesActivas.sort(function(a,b){return(a.numero||0)-(b.numero||0);});
     actualizarBadge();
+  });
+
+  // Estado del agente de impresión: el agente local escribe un "latido" cada
+  // ciclo (~3s). Si no se actualiza en un rato, asumimos que se cayó/está
+  // apagado y avisamos aquí en vez de que el cajero se entere solo cuando
+  // falla un ticket.
+  var elPS=document.getElementById('printerStatus'), elPST=document.getElementById('printerStatusText');
+  onSnapshot(doc(db,'estado_sistema','agente_impresion'),function(snap){
+    if(!snap.exists()){
+      elPS.className='printer-status off'; elPST.textContent='Impresora sin configurar';
+      return;
+    }
+    var ultimo=snap.data().ultimoLatido;
+    var ms=ultimo?(Date.now()-new Date(ultimo).getTime()):Infinity;
+    if(ms<15000){ elPS.className='printer-status on'; elPST.textContent='Impresora conectada'; }
+    else{ elPS.className='printer-status off'; elPST.textContent='Impresora desconectada'; }
+  },function(){
+    elPS.className='printer-status off'; elPST.textContent='Impresora desconectada';
   });
 } catch(e){console.warn('Firebase:',e);}
 </script>
