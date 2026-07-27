@@ -17,6 +17,12 @@ header{background:linear-gradient(135deg,#A6182E,#7A0F20);padding:10px 20px;disp
 .back:hover{border-color:var(--yellow);color:var(--yellow);}
 .logout{margin-left:auto;padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.15);color:#F7EFDD;font-size:0.75rem;font-weight:700;cursor:pointer;}
 .logout:hover{border-color:#FFD9DF;color:#FFD9DF;}
+.printer-status{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:50px;font-size:0.7rem;font-weight:700;white-space:nowrap;background:rgba(0,0,0,.15);color:#F7EFDD;}
+.printer-status.on{background:rgba(47,158,91,.25);color:#C8F5D6;}
+.printer-status.off{background:rgba(230,60,60,.3);color:#FFD9D9;}
+.printer-status .dot{width:7px;height:7px;border-radius:50%;background:#999;flex-shrink:0;}
+.printer-status.on .dot{background:#3EDC7A;box-shadow:0 0 5px #3EDC7A;}
+.printer-status.off .dot{background:#FF5C5C;box-shadow:0 0 5px #FF5C5C;}
 .filter-bar{padding:12px 20px;display:flex;gap:8px;flex-wrap:wrap;background:var(--panel);border-bottom:2px solid var(--border);}
 .fb{padding:7px 16px;border-radius:50px;border:2px solid var(--border);background:var(--bg);color:var(--muted);font-size:0.78rem;font-weight:700;cursor:pointer;transition:all .2s;}
 .fb.active{border-color:var(--red);color:var(--red);background:#fff;}
@@ -52,6 +58,7 @@ header{background:linear-gradient(135deg,#A6182E,#7A0F20);padding:10px 20px;disp
 <header>
   <a class="back" href="panel.html">← Panel</a>
   <div class="logo">📋 Órdenes de hoy</div>
+  <div class="printer-status" id="printerStatus"><span class="dot"></span><span id="printerStatusText">Verificando impresora...</span></div>
   <button class="logout" onclick="logout()">Salir</button>
 </header>
 <div class="filter-bar">
@@ -147,6 +154,18 @@ import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, del
 var app=initializeApp({apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"});
 var db=getFirestore(app);
 window._db=db; window._doc=doc; window._updateDoc=updateDoc;
+
+// Estado del agente de impresión (ver pos.html para más contexto del "latido")
+var elPS=document.getElementById('printerStatus'), elPST=document.getElementById('printerStatusText');
+onSnapshot(doc(db,'estado_sistema','agente_impresion'),function(snap){
+  if(!snap.exists()){ elPS.className='printer-status off'; elPST.textContent='Impresora sin configurar'; return; }
+  var ultimo=snap.data().ultimoLatido;
+  var ms=ultimo?(Date.now()-new Date(ultimo).getTime()):Infinity;
+  if(ms<15000){ elPS.className='printer-status on'; elPST.textContent='Impresora conectada'; }
+  else{ elPS.className='printer-status off'; elPST.textContent='Impresora desconectada'; }
+},function(){
+  elPS.className='printer-status off'; elPST.textContent='Impresora desconectada';
+});
 // Reimpresión remota: encola un trabajo de tipo factura para el agente local
 window._reimprimir=function(p){
   addDoc(collection(db,'trabajos_impresion'),{
