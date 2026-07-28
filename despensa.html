@@ -28,15 +28,22 @@ header{background:linear-gradient(135deg,var(--sage),var(--sage-deep));padding:1
 .search-wrap input:focus{box-shadow:0 0 0 2px var(--gold);}
 
 .wrap{max-width:1000px;margin:0 auto;padding:16px 16px 0;}
-.cat-section{margin-bottom:18px;}
-.cat-head{display:flex;align-items:center;gap:10px;padding:10px 4px;cursor:pointer;user-select:none;}
-.cat-icon{font-size:1.3rem;}
-.cat-name{font-family:'Poppins',sans-serif;font-weight:700;font-size:1.02rem;color:var(--sage-deep);}
-.cat-count{background:var(--terra);color:#fff;font-size:0.68rem;font-weight:800;border-radius:50px;padding:2px 9px;}
-.cat-total{font-size:0.72rem;color:var(--muted);margin-left:2px;}
-.cat-arrow{margin-left:auto;color:var(--muted);font-size:0.85rem;transition:transform .2s;}
-.cat-section.collapsed .cat-arrow{transform:rotate(-90deg);}
-.cat-section.collapsed .cat-grid{display:none;}
+
+.home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;}
+.cat-tile{background:var(--card);border:2px solid var(--border);border-radius:16px;padding:22px 14px;text-align:center;cursor:pointer;transition:all .2s;box-shadow:0 2px 0 var(--border);position:relative;}
+.cat-tile:hover{border-color:var(--sage);transform:translateY(-3px);box-shadow:0 8px 0 var(--border);}
+.cat-tile-icon{font-size:2.2rem;margin-bottom:8px;display:block;}
+.cat-tile-name{font-family:'Poppins',sans-serif;font-weight:700;font-size:0.92rem;color:var(--sage-deep);margin-bottom:4px;}
+.cat-tile-total{font-size:0.7rem;color:var(--muted);}
+.cat-tile-badge{position:absolute;top:-8px;right:-8px;background:var(--terra);color:#fff;font-size:0.72rem;font-weight:900;border-radius:50%;min-width:22px;height:22px;line-height:22px;padding:0 4px;box-shadow:0 2px 6px rgba(0,0,0,.2);}
+
+.detail-head{display:flex;align-items:center;gap:10px;padding:2px 2px 16px;flex-wrap:wrap;}
+.back-btn{background:var(--card);border:2px solid var(--border);color:var(--sage-deep);border-radius:50px;padding:7px 14px;font-weight:700;font-size:0.8rem;cursor:pointer;}
+.back-btn:hover{border-color:var(--sage);}
+.detail-icon{font-size:1.6rem;}
+.detail-name{font-family:'Poppins',sans-serif;font-weight:800;font-size:1.1rem;color:var(--sage-deep);}
+.detail-total{margin-left:auto;font-size:0.75rem;color:var(--muted);}
+
 .cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;}
 
 .card{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:12px;transition:border-color .2s;}
@@ -57,9 +64,6 @@ header{background:linear-gradient(135deg,var(--sage),var(--sage-deep));padding:1
 .min-row{display:flex;align-items:center;gap:6px;font-size:0.7rem;color:var(--muted);}
 .min-row input{width:38px;border:1px solid var(--border);border-radius:6px;padding:2px 4px;font-size:0.72rem;text-align:center;font-family:inherit;color:var(--text);}
 .min-row input:focus{outline:none;border-color:var(--sage);}
-
-.add-cat-btn{background:none;border:2px dashed var(--border);color:var(--muted);border-radius:14px;padding:12px;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;min-height:80px;}
-.add-cat-btn:hover{border-color:var(--sage);color:var(--sage-deep);}
 
 .fab{position:fixed;bottom:18px;right:18px;width:54px;height:54px;border-radius:50%;background:var(--terra);color:#fff;border:none;font-size:1.6rem;cursor:pointer;box-shadow:0 6px 18px rgba(184,92,62,.45);z-index:200;}
 .fab:hover{background:var(--terra-deep);}
@@ -95,8 +99,8 @@ header{background:linear-gradient(135deg,var(--sage),var(--sage-deep));padding:1
     <button class="btn-lista" onclick="abrirLista()">🛒 Lista de compras <span class="badge" id="listaBadge" style="display:none;">0</span></button>
   </div>
   <div class="subtitle" id="subtitle">Cargando...</div>
-  <div class="search-wrap">
-    <input type="text" id="searchInput" placeholder="🔍 Buscar producto..." oninput="render()"/>
+  <div class="search-wrap" id="searchWrap" style="display:none;">
+    <input type="text" id="searchInput" placeholder="🔍 Buscar producto en esta categoría..." oninput="render()"/>
   </div>
 </header>
 
@@ -156,7 +160,8 @@ var CATS_BASE=[
   {id:'snacks',nombre:'Snacks',icono:'🍫'}
 ];
 var productos=[];
-var colapsadas={};
+var vista='home'; // 'home' | 'categoria'
+var categoriaActual=null;
 
 function catInfo(id){
   var base=CATS_BASE.find(function(c){return c.id===id;});
@@ -174,48 +179,84 @@ function todasLasCategorias(){
 }
 
 function render(){
-  var q=document.getElementById('searchInput').value.trim().toLowerCase();
+  if(vista==='categoria') renderCategoriaView();
+  else renderHome();
+}
+
+function abrirCategoria(catId){
+  vista='categoria'; categoriaActual=catId;
+  document.getElementById('searchInput').value='';
+  render();
+  window.scrollTo(0,0);
+}
+function volverHome(){
+  vista='home'; categoriaActual=null;
+  render();
+  window.scrollTo(0,0);
+}
+
+function renderHome(){
+  document.getElementById('searchWrap').style.display='none';
   var wrap=document.getElementById('wrap');
   wrap.innerHTML='';
-  var cats=todasLasCategorias();
-  var totalBajo=0;
-
-  cats.forEach(function(catId){
+  var grid=document.createElement('div');
+  grid.className='home-grid';
+  todasLasCategorias().forEach(function(catId){
     var info=catInfo(catId);
     var items=productos.filter(function(p){return p.categoria===catId;});
-    if(q) items=items.filter(function(p){return p.nombre.toLowerCase().indexOf(q)!==-1;});
-    if(q && items.length===0) return; // ocultar categorías vacías mientras se busca
-
-    var bajos=productos.filter(function(p){return p.categoria===catId && p.cantidad<p.minimo;}).length;
-    totalBajo+=0; // se calcula abajo con el total real
-
-    var sec=document.createElement('div');
-    sec.className='cat-section'+(colapsadas[catId]?' collapsed':'');
-    var head=document.createElement('div');
-    head.className='cat-head';
-    head.onclick=function(){ colapsadas[catId]=!colapsadas[catId]; render(); };
-    head.innerHTML=
-      '<span class="cat-icon">'+info.icono+'</span>'+
-      '<span class="cat-name">'+info.nombre+'</span>'+
-      (bajos>0?'<span class="cat-count">'+bajos+' por comprar</span>':'')+
-      '<span class="cat-total">'+items.length+' producto'+(items.length===1?'':'s')+'</span>'+
-      '<span class="cat-arrow">▼</span>';
-    sec.appendChild(head);
-
-    var grid=document.createElement('div');
-    grid.className='cat-grid';
-    if(items.length===0){
-      grid.innerHTML='<div class="empty-cat">Sin productos aún en esta categoría.</div>';
-    } else {
-      items.forEach(function(p){ grid.appendChild(renderCard(p)); });
-    }
-    sec.appendChild(grid);
-    wrap.appendChild(sec);
+    var bajos=items.filter(function(p){return p.cantidad<p.minimo;}).length;
+    var tile=document.createElement('div');
+    tile.className='cat-tile';
+    tile.onclick=function(){ abrirCategoria(catId); };
+    tile.innerHTML=
+      (bajos>0?'<span class="cat-tile-badge">'+bajos+'</span>':'')+
+      '<span class="cat-tile-icon">'+info.icono+'</span>'+
+      '<div class="cat-tile-name">'+info.nombre+'</div>'+
+      '<div class="cat-tile-total">'+items.length+' producto'+(items.length===1?'':'s')+'</div>';
+    grid.appendChild(tile);
   });
+  wrap.appendChild(grid);
 
   var totalItems=productos.length;
   var porComprar=productos.filter(function(p){return p.cantidad<p.minimo;}).length;
-  document.getElementById('subtitle').textContent=totalItems+' productos · '+porComprar+' por comprar';
+  document.getElementById('subtitle').textContent=totalItems+' productos · '+porComprar+' por comprar · toca una categoría';
+  actualizarBadgeLista();
+}
+
+function renderCategoriaView(){
+  document.getElementById('searchWrap').style.display='block';
+  var info=catInfo(categoriaActual);
+  var q=document.getElementById('searchInput').value.trim().toLowerCase();
+  var todosCat=productos.filter(function(p){return p.categoria===categoriaActual;});
+  var items=q?todosCat.filter(function(p){return p.nombre.toLowerCase().indexOf(q)!==-1;}):todosCat;
+
+  var wrap=document.getElementById('wrap');
+  wrap.innerHTML='';
+  var head=document.createElement('div');
+  head.className='detail-head';
+  head.innerHTML=
+    '<button class="back-btn" onclick="volverHome()">← Categorías</button>'+
+    '<span class="detail-icon">'+info.icono+'</span>'+
+    '<span class="detail-name">'+info.nombre+'</span>'+
+    '<span class="detail-total">'+todosCat.length+' producto'+(todosCat.length===1?'':'s')+'</span>';
+  wrap.appendChild(head);
+
+  var grid=document.createElement('div');
+  grid.className='cat-grid';
+  if(items.length===0){
+    grid.innerHTML='<div class="empty-cat">'+(q?'Sin resultados para "'+escapeHtml(q)+'".':'Sin productos aún en esta categoría.')+'</div>';
+  } else {
+    items.forEach(function(p){ grid.appendChild(renderCard(p)); });
+  }
+  wrap.appendChild(grid);
+
+  var porComprarCat=todosCat.filter(function(p){return p.cantidad<p.minimo;}).length;
+  document.getElementById('subtitle').textContent=info.nombre+' · '+todosCat.length+' productos · '+porComprarCat+' por comprar';
+  actualizarBadgeLista();
+}
+
+function actualizarBadgeLista(){
+  var porComprar=productos.filter(function(p){return p.cantidad<p.minimo;}).length;
   var badge=document.getElementById('listaBadge');
   if(porComprar>0){ badge.style.display='inline-block'; badge.textContent=porComprar; }
   else badge.style.display='none';
@@ -274,6 +315,7 @@ function abrirAgregar(){
   var optNueva=document.createElement('option');
   optNueva.value='__nueva__'; optNueva.textContent='➕ Nueva categoría...';
   sel.appendChild(optNueva);
+  if(vista==='categoria'&&categoriaActual) sel.value=categoriaActual;
   document.getElementById('fNuevaCatWrap').style.display='none';
   document.getElementById('fNombre').value='';
   document.getElementById('fCantidad').value='0';
