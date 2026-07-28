@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Despensa de la Casa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#FAF7F2;--card:#FFFFFF;--border:#E7DFD0;
+  --sage:#5B8266;--sage-deep:#3F5F49;
+  --terra:#D97757;--terra-deep:#B85C3E;
+  --gold:#E7C77B;
+  --text:#2A2620;--muted:#8A7F70;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',Arial,sans-serif;min-height:100vh;padding-bottom:40px;}
+header{background:linear-gradient(135deg,var(--sage),var(--sage-deep));padding:16px 20px;position:sticky;top:0;z-index:100;box-shadow:0 3px 14px rgba(63,95,73,.25);}
+.header-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+.logo{font-family:'Poppins',sans-serif;font-weight:800;font-size:1.25rem;color:var(--gold);letter-spacing:.2px;white-space:nowrap;}
+.subtitle{font-size:0.72rem;color:#EAF2EC;opacity:.85;width:100%;}
+.btn-lista{margin-left:auto;background:var(--terra);color:#fff;border:none;padding:9px 16px;border-radius:50px;font-weight:700;font-size:0.82rem;cursor:pointer;position:relative;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.15);}
+.btn-lista:hover{background:var(--terra-deep);}
+.btn-lista .badge{position:absolute;top:-6px;right:-6px;background:#fff;color:var(--terra-deep);font-size:0.68rem;font-weight:900;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;box-shadow:0 2px 4px rgba(0,0,0,.2);}
+.search-wrap input{width:100%;background:rgba(255,255,255,.92);border:none;padding:10px 14px;border-radius:10px;font-size:0.88rem;outline:none;font-family:inherit;}
+.search-wrap input:focus{box-shadow:0 0 0 2px var(--gold);}
+
+.wrap{max-width:1000px;margin:0 auto;padding:16px 16px 0;}
+.cat-section{margin-bottom:18px;}
+.cat-head{display:flex;align-items:center;gap:10px;padding:10px 4px;cursor:pointer;user-select:none;}
+.cat-icon{font-size:1.3rem;}
+.cat-name{font-family:'Poppins',sans-serif;font-weight:700;font-size:1.02rem;color:var(--sage-deep);}
+.cat-count{background:var(--terra);color:#fff;font-size:0.68rem;font-weight:800;border-radius:50px;padding:2px 9px;}
+.cat-total{font-size:0.72rem;color:var(--muted);margin-left:2px;}
+.cat-arrow{margin-left:auto;color:var(--muted);font-size:0.85rem;transition:transform .2s;}
+.cat-section.collapsed .cat-arrow{transform:rotate(-90deg);}
+.cat-section.collapsed .cat-grid{display:none;}
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;}
+
+.card{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:12px;transition:border-color .2s;}
+.card.ok{border-color:#CFE0D4;}
+.card.warn{border-color:var(--terra);background:#FDF3EE;}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:8px;}
+.card-name{font-weight:700;font-size:0.88rem;line-height:1.3;flex:1;}
+.card-del{background:none;border:none;color:var(--muted);font-size:0.85rem;cursor:pointer;flex-shrink:0;padding:0 2px;}
+.card-del:hover{color:var(--terra-deep);}
+.card-status{font-size:0.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px;}
+.card-status.ok{color:var(--sage);}
+.card-status.warn{color:var(--terra-deep);}
+.qty-row{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+.qty-btn{width:30px;height:30px;border-radius:8px;border:none;background:var(--bg);color:var(--sage-deep);font-size:1rem;font-weight:800;cursor:pointer;flex-shrink:0;}
+.qty-btn:hover{background:var(--border);}
+.qty-input{flex:1;text-align:center;border:1px solid var(--border);border-radius:8px;padding:5px 2px;font-size:0.95rem;font-weight:800;font-family:'Poppins',sans-serif;color:var(--text);width:100%;min-width:0;}
+.qty-input:focus{outline:none;border-color:var(--sage);}
+.min-row{display:flex;align-items:center;gap:6px;font-size:0.7rem;color:var(--muted);}
+.min-row input{width:38px;border:1px solid var(--border);border-radius:6px;padding:2px 4px;font-size:0.72rem;text-align:center;font-family:inherit;color:var(--text);}
+.min-row input:focus{outline:none;border-color:var(--sage);}
+
+.add-cat-btn{background:none;border:2px dashed var(--border);color:var(--muted);border-radius:14px;padding:12px;font-size:0.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;min-height:80px;}
+.add-cat-btn:hover{border-color:var(--sage);color:var(--sage-deep);}
+
+.fab{position:fixed;bottom:18px;right:18px;width:54px;height:54px;border-radius:50%;background:var(--terra);color:#fff;border:none;font-size:1.6rem;cursor:pointer;box-shadow:0 6px 18px rgba(184,92,62,.45);z-index:200;}
+.fab:hover{background:var(--terra-deep);}
+
+.overlay{position:fixed;inset:0;background:rgba(42,38,32,.55);display:none;align-items:center;justify-content:center;z-index:900;padding:16px;}
+.overlay.show{display:flex;}
+.modal{background:var(--card);border-radius:18px;padding:22px;width:100%;max-width:400px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,.3);}
+.modal h3{font-family:'Poppins',sans-serif;color:var(--sage-deep);font-size:1.1rem;margin-bottom:14px;}
+.modal-close{float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted);}
+.field{margin-bottom:12px;}
+.field label{font-size:0.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px;}
+.field input,.field select{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:9px;font-size:0.88rem;outline:none;font-family:inherit;}
+.field input:focus,.field select:focus{border-color:var(--sage);}
+.field-row{display:flex;gap:10px;}
+.field-row .field{flex:1;}
+.modal-send{width:100%;background:var(--sage);color:#fff;border:none;padding:12px;border-radius:10px;font-weight:800;font-size:0.9rem;cursor:pointer;margin-top:6px;}
+.modal-send:hover{background:var(--sage-deep);}
+
+.lista-item{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+.lista-item .li-name{flex:1;font-size:0.88rem;font-weight:700;}
+.lista-item .li-cat{font-size:0.68rem;color:var(--muted);display:block;font-weight:500;}
+.lista-check{width:26px;height:26px;border-radius:50%;border:2px solid var(--sage);background:none;cursor:pointer;flex-shrink:0;color:var(--sage);font-size:0.85rem;}
+.lista-check:hover{background:var(--sage);color:#fff;}
+.lista-empty{text-align:center;color:var(--muted);padding:30px 10px;font-size:0.88rem;}
+
+.empty-cat{color:var(--muted);font-size:0.8rem;padding:6px 4px 0;grid-column:1/-1;}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-top">
+    <div class="logo">🧺 Despensa de la Casa</div>
+    <button class="btn-lista" onclick="abrirLista()">🛒 Lista de compras <span class="badge" id="listaBadge" style="display:none;">0</span></button>
+  </div>
+  <div class="subtitle" id="subtitle">Cargando...</div>
+  <div class="search-wrap">
+    <input type="text" id="searchInput" placeholder="🔍 Buscar producto..." oninput="render()"/>
+  </div>
+</header>
+
+<div class="wrap" id="wrap"></div>
+
+<button class="fab" onclick="abrirAgregar()" title="Agregar producto">+</button>
+
+<!-- MODAL: agregar producto -->
+<div class="overlay" id="addOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="cerrarAgregar()">✕</button>
+    <h3>➕ Agregar producto</h3>
+    <div class="field">
+      <label>Nombre del producto</label>
+      <input type="text" id="fNombre" placeholder="Ej: Pechuga de pollo"/>
+    </div>
+    <div class="field">
+      <label>Categoría</label>
+      <select id="fCategoria" onchange="onCategoriaChange()"></select>
+    </div>
+    <div class="field" id="fNuevaCatWrap" style="display:none;">
+      <label>Nombre de la nueva categoría</label>
+      <input type="text" id="fNuevaCat" placeholder="Ej: Bebé, Bebidas..."/>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Cantidad actual</label>
+        <input type="number" id="fCantidad" value="0" min="0"/>
+      </div>
+      <div class="field">
+        <label>Mínimo deseado</label>
+        <input type="number" id="fMinimo" value="1" min="0"/>
+      </div>
+    </div>
+    <button class="modal-send" onclick="guardarProducto()">Agregar</button>
+  </div>
+</div>
+
+<!-- MODAL: lista de compras -->
+<div class="overlay" id="listaOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="cerrarLista()">✕</button>
+    <h3>🛒 Lista de compras</h3>
+    <div id="listaBody"></div>
+  </div>
+</div>
+
+<script>
+var CATS_BASE=[
+  {id:'proteinas',nombre:'Proteínas',icono:'🥩'},
+  {id:'desayuno_cena',nombre:'Desayuno y Cena',icono:'🍳'},
+  {id:'cocina',nombre:'Cocina y Despensa',icono:'🧂'},
+  {id:'jack',nombre:'Jack 🐱',icono:'🐱'},
+  {id:'rocco',nombre:'Rocco 🐶',icono:'🐶'},
+  {id:'aseo',nombre:'Aseo Personal',icono:'🧴'},
+  {id:'skincare',nombre:'Skincare',icono:'✨'},
+  {id:'snacks',nombre:'Snacks',icono:'🍫'}
+];
+var productos=[];
+var colapsadas={};
+
+function catInfo(id){
+  var base=CATS_BASE.find(function(c){return c.id===id;});
+  if(base) return base;
+  return {id:id,nombre:id,icono:'📦'};
+}
+function todasLasCategorias(){
+  var extra=[];
+  productos.forEach(function(p){
+    if(!CATS_BASE.find(function(c){return c.id===p.categoria;}) && extra.indexOf(p.categoria)===-1){
+      extra.push(p.categoria);
+    }
+  });
+  return CATS_BASE.map(function(c){return c.id;}).concat(extra);
+}
+
+function render(){
+  var q=document.getElementById('searchInput').value.trim().toLowerCase();
+  var wrap=document.getElementById('wrap');
+  wrap.innerHTML='';
+  var cats=todasLasCategorias();
+  var totalBajo=0;
+
+  cats.forEach(function(catId){
+    var info=catInfo(catId);
+    var items=productos.filter(function(p){return p.categoria===catId;});
+    if(q) items=items.filter(function(p){return p.nombre.toLowerCase().indexOf(q)!==-1;});
+    if(q && items.length===0) return; // ocultar categorías vacías mientras se busca
+
+    var bajos=productos.filter(function(p){return p.categoria===catId && p.cantidad<p.minimo;}).length;
+    totalBajo+=0; // se calcula abajo con el total real
+
+    var sec=document.createElement('div');
+    sec.className='cat-section'+(colapsadas[catId]?' collapsed':'');
+    var head=document.createElement('div');
+    head.className='cat-head';
+    head.onclick=function(){ colapsadas[catId]=!colapsadas[catId]; render(); };
+    head.innerHTML=
+      '<span class="cat-icon">'+info.icono+'</span>'+
+      '<span class="cat-name">'+info.nombre+'</span>'+
+      (bajos>0?'<span class="cat-count">'+bajos+' por comprar</span>':'')+
+      '<span class="cat-total">'+items.length+' producto'+(items.length===1?'':'s')+'</span>'+
+      '<span class="cat-arrow">▼</span>';
+    sec.appendChild(head);
+
+    var grid=document.createElement('div');
+    grid.className='cat-grid';
+    if(items.length===0){
+      grid.innerHTML='<div class="empty-cat">Sin productos aún en esta categoría.</div>';
+    } else {
+      items.forEach(function(p){ grid.appendChild(renderCard(p)); });
+    }
+    sec.appendChild(grid);
+    wrap.appendChild(sec);
+  });
+
+  var totalItems=productos.length;
+  var porComprar=productos.filter(function(p){return p.cantidad<p.minimo;}).length;
+  document.getElementById('subtitle').textContent=totalItems+' productos · '+porComprar+' por comprar';
+  var badge=document.getElementById('listaBadge');
+  if(porComprar>0){ badge.style.display='inline-block'; badge.textContent=porComprar; }
+  else badge.style.display='none';
+}
+
+function renderCard(p){
+  var bajo=p.cantidad<p.minimo;
+  var card=document.createElement('div');
+  card.className='card '+(bajo?'warn':'ok');
+  card.innerHTML=
+    '<div class="card-top">'+
+      '<div class="card-name">'+escapeHtml(p.nombre)+'</div>'+
+      '<button class="card-del" onclick="eliminarProducto(\''+p._id+'\')" title="Eliminar">✕</button>'+
+    '</div>'+
+    '<div class="card-status '+(bajo?'warn':'ok')+'">'+(bajo?(p.cantidad<=0?'⚠️ Agotado':'⚠️ Comprar'):'✓ Suficiente')+'</div>'+
+    '<div class="qty-row">'+
+      '<button class="qty-btn" onclick="cambiarCantidad(\''+p._id+'\',-1)">−</button>'+
+      '<input class="qty-input" type="number" min="0" value="'+p.cantidad+'" onchange="setCantidad(\''+p._id+'\',this.value)"/>'+
+      '<button class="qty-btn" onclick="cambiarCantidad(\''+p._id+'\',1)">+</button>'+
+    '</div>'+
+    '<div class="min-row">Mínimo <input type="number" min="0" value="'+p.minimo+'" onchange="setMinimo(\''+p._id+'\',this.value)"/></div>';
+  return card;
+}
+function escapeHtml(s){var d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+
+function cambiarCantidad(id,delta){
+  var p=productos.find(function(x){return x._id===id;});
+  if(!p) return;
+  var nueva=Math.max(0,(p.cantidad||0)+delta);
+  if(window._setCantidad) window._setCantidad(id,nueva);
+}
+function setCantidad(id,val){
+  var n=Math.max(0,parseInt(val,10)||0);
+  if(window._setCantidad) window._setCantidad(id,n);
+}
+function setMinimo(id,val){
+  var n=Math.max(0,parseInt(val,10)||0);
+  if(window._setMinimo) window._setMinimo(id,n);
+}
+function eliminarProducto(id){
+  var p=productos.find(function(x){return x._id===id;});
+  if(!confirm('¿Eliminar "'+(p?p.nombre:'')+'" de la despensa?')) return;
+  if(window._eliminarProducto) window._eliminarProducto(id);
+}
+
+// ── Agregar producto ──
+function abrirAgregar(){
+  var sel=document.getElementById('fCategoria');
+  sel.innerHTML='';
+  todasLasCategorias().forEach(function(id){
+    var info=catInfo(id);
+    var opt=document.createElement('option');
+    opt.value=id; opt.textContent=info.icono+' '+info.nombre;
+    sel.appendChild(opt);
+  });
+  var optNueva=document.createElement('option');
+  optNueva.value='__nueva__'; optNueva.textContent='➕ Nueva categoría...';
+  sel.appendChild(optNueva);
+  document.getElementById('fNuevaCatWrap').style.display='none';
+  document.getElementById('fNombre').value='';
+  document.getElementById('fCantidad').value='0';
+  document.getElementById('fMinimo').value='1';
+  document.getElementById('addOverlay').classList.add('show');
+}
+function onCategoriaChange(){
+  var v=document.getElementById('fCategoria').value;
+  document.getElementById('fNuevaCatWrap').style.display=(v==='__nueva__')?'block':'none';
+}
+function cerrarAgregar(){ document.getElementById('addOverlay').classList.remove('show'); }
+function guardarProducto(){
+  var nombre=document.getElementById('fNombre').value.trim();
+  if(!nombre){ alert('Escribe el nombre del producto'); return; }
+  var catSel=document.getElementById('fCategoria').value;
+  var categoria=catSel;
+  if(catSel==='__nueva__'){
+    var nueva=document.getElementById('fNuevaCat').value.trim();
+    if(!nueva){ alert('Escribe el nombre de la nueva categoría'); return; }
+    categoria=nueva.toLowerCase().replace(/\s+/g,'_');
+    CATS_BASE.push({id:categoria,nombre:nueva,icono:'📦'});
+  }
+  var cantidad=Math.max(0,parseInt(document.getElementById('fCantidad').value,10)||0);
+  var minimo=Math.max(0,parseInt(document.getElementById('fMinimo').value,10)||0);
+  if(window._agregarProducto) window._agregarProducto({nombre:nombre,categoria:categoria,cantidad:cantidad,minimo:minimo});
+  cerrarAgregar();
+}
+
+// ── Lista de compras ──
+function abrirLista(){
+  var body=document.getElementById('listaBody');
+  var bajos=productos.filter(function(p){return p.cantidad<p.minimo;});
+  bajos.sort(function(a,b){return a.categoria.localeCompare(b.categoria);});
+  if(bajos.length===0){
+    body.innerHTML='<div class="lista-empty">🎉 No hace falta comprar nada por ahora.</div>';
+  } else {
+    body.innerHTML='';
+    bajos.forEach(function(p){
+      var info=catInfo(p.categoria);
+      var row=document.createElement('div');
+      row.className='lista-item';
+      row.innerHTML=
+        '<button class="lista-check" onclick="marcarComprado(\''+p._id+'\')" title="Ya lo compré">✓</button>'+
+        '<div><div class="li-name">'+escapeHtml(p.nombre)+'</div><span class="li-cat">'+info.icono+' '+info.nombre+'</span></div>';
+      body.appendChild(row);
+    });
+  }
+  document.getElementById('listaOverlay').classList.add('show');
+}
+function cerrarLista(){ document.getElementById('listaOverlay').classList.remove('show'); }
+function marcarComprado(id){
+  var p=productos.find(function(x){return x._id===id;});
+  if(!p) return;
+  var val=prompt('¿Cuántos "'+p.nombre+'" compraste?', p.minimo);
+  if(val===null) return;
+  var n=Math.max(0,parseInt(val,10)||0);
+  if(window._setCantidad) window._setCantidad(id,n);
+  setTimeout(abrirLista,300);
+}
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+var app=initializeApp({apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"});
+var db=getFirestore(app);
+
+window._agregarProducto=function(data){
+  addDoc(collection(db,'despensa_productos'),Object.assign({},data,{fechaCreacion:serverTimestamp()}))
+    .catch(function(e){alert('Error: '+e.message);});
+};
+window._setCantidad=function(id,cantidad){
+  updateDoc(doc(db,'despensa_productos',id),{cantidad:cantidad}).catch(function(e){alert('Error: '+e.message);});
+};
+window._setMinimo=function(id,minimo){
+  updateDoc(doc(db,'despensa_productos',id),{minimo:minimo}).catch(function(e){alert('Error: '+e.message);});
+};
+window._eliminarProducto=function(id){
+  deleteDoc(doc(db,'despensa_productos',id)).catch(function(e){alert('Error: '+e.message);});
+};
+
+onSnapshot(collection(db,'despensa_productos'),function(snap){
+  var lista=[];
+  snap.forEach(function(d){
+    var data=d.data();
+    lista.push(Object.assign({_id:d.id},data,{cantidad:data.cantidad||0,minimo:(data.minimo!==undefined?data.minimo:1)}));
+  });
+  lista.sort(function(a,b){return a.nombre.localeCompare(b.nombre);});
+  window.productos=lista;
+  render();
+});
+</script>
+</body>
+</html>
