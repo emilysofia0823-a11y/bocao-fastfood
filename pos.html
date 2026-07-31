@@ -1008,6 +1008,7 @@ function confirmarPago(){
   registrarIngresoEnCaja(pedidoActual);
   document.getElementById('pagoOverlay').classList.remove('open');
   mostrarFactura(pedidoActual);
+  enviarImpresionRemota('factura',pedidoActual);
 }
 
 function mostrarFactura(p){
@@ -1036,8 +1037,8 @@ function mostrarFactura(p){
 
   var acts=document.getElementById('factActions');
   acts.innerHTML='';
-  var btnPrint=document.createElement('button'); btnPrint.className='btn-print-fact'; btnPrint.textContent='🖨️ Imprimir';
-  btnPrint.onclick=function(){var w=window.open('','_blank','width=380,height=600');w.document.write('<html><head><style>body{font-family:"Courier New",monospace;padding:16px;font-size:13px;}.com-title{text-align:center;font-weight:900;border-bottom:2px dashed #000;padding-bottom:8px;margin-bottom:10px;}.com-meta{border-bottom:1px dashed #999;padding-bottom:8px;margin-bottom:8px;line-height:1.8;}.com-item{display:flex;justify-content:space-between;}.com-obs{color:#555;font-style:italic;padding-left:10px;}.com-totals{border-top:2px dashed #000;padding-top:8px;}.com-trow{display:flex;justify-content:space-between;}.com-trow.big{font-weight:900;font-size:1.1rem;}.com-notas{margin-top:6px;border-top:1px dashed #ccc;padding-top:6px;color:#444;}</style></head><body>'+document.getElementById('factContent').innerHTML+'</body></html>');w.document.close();w.print();w.close();enviarImpresionRemota('factura',p);};
+  var btnPrint=document.createElement('button'); btnPrint.className='btn-print-fact'; btnPrint.textContent='🖨️ Reimprimir';
+  btnPrint.onclick=function(){enviarImpresionRemota('factura',p);};
   acts.appendChild(btnPrint);
 
   var btnNuevo=document.createElement('button'); btnNuevo.className='btn-nuevo'; btnNuevo.textContent='✅ Nuevo pedido';
