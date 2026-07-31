@@ -1258,7 +1258,7 @@ try {
     }
     var ultimo=snap.data().ultimoLatido;
     var ms=ultimo?(Date.now()-new Date(ultimo).getTime()):Infinity;
-    if(ms<15000){ elPS.className='printer-status on'; elPST.textContent='Impresora conectada'; }
+    if(ms<40000){ elPS.className='printer-status on'; elPST.textContent='Impresora conectada'; }
     else{ elPS.className='printer-status off'; elPST.textContent='Impresora desconectada'; }
   },function(){
     elPS.className='printer-status off'; elPST.textContent='Impresora desconectada';
