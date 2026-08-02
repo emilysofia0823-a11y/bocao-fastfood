@@ -205,6 +205,8 @@ header::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:10
 .pago-box{background:var(--card);border:3px solid var(--green);border-radius:14px;padding:24px;width:100%;max-width:360px;}
 .pago-box h3{font-family:'Baloo 2',sans-serif;color:var(--green);font-size:1.3rem;font-weight:700;margin-bottom:6px;}
 .pago-total{font-family:'Baloo 2',sans-serif;font-size:1.9rem;font-weight:800;color:var(--red);margin-bottom:18px;}
+.pago-edit-btn{width:100%;background:var(--bg);border:2px solid var(--border);color:var(--red);padding:9px;border-radius:10px;font-weight:700;font-size:0.82rem;cursor:pointer;margin-bottom:14px;}
+.pago-edit-btn:hover{border-color:var(--red);}
 .pago-opts{display:flex;gap:8px;margin-bottom:16px;}
 .pago-opt{flex:1;background:var(--bg);border:2px solid var(--border);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all .2s;}
 .pago-opt:hover,.pago-opt.sel{border-color:var(--green);}
@@ -443,6 +445,7 @@ header::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:10
   <div class="pago-box">
     <h3>💰 Cobrar pedido</h3>
     <div class="pago-total" id="pagoTotalLabel">$0</div>
+    <button class="pago-edit-btn" onclick="editarPedidoActual()">✏️ Agregar / quitar productos</button>
     <div class="pago-opts">
       <div class="pago-opt" id="payEfectivo" onclick="selPago('efectivo')">
         <span class="picon">💵</span><span class="pname">Efectivo</span>
@@ -559,6 +562,7 @@ var cart=[], tipo='domicilio', activeCat=null;
 var pendingItem=null, selectedVar=null, costoEnvio=0, modalQty=1;
 var pedidoNum=parseInt(localStorage.getItem('bocao_num')||'900');
 var pedidoActual=null, metodoPagoSel=null, descuentoPct=0;
+var editandoPedidoId=null; // si no es null, "Confirmar" guarda cambios sobre este pedido en vez de crear uno nuevo
 var canjeSeleccionado=null; // {puntos,nombre} cuando se elige un premio en el carrito
 var PREMIOS_BOCAPUNTOS=[
   {puntos:10,nombre:'Gaseosa'},
@@ -716,8 +720,10 @@ function agregarAlCarrito(){
   var eraVacio=cart.length===0;
   var notas=document.getElementById('mNotas').value.trim();
   var catKey=Object.keys(MENU).find(function(k){return MENU[k].items.find(function(i){return i.id===pendingItem.id;});});
-  var labels={hamburguesas:'Hamburguesa',perros:'Perro Caliente',salchipapas:'Salchipapa',combos:'Combo',adicionales:'Adicional',bebidas:'Bebida'};
-  var fullName=(labels[catKey]||'')+' '+pendingItem.name;
+  // Prefijo corto de categoría para identificar el producto de un vistazo en la comanda
+  // (ej: "H. Clásica", "P. Sencillo", "S. Clásica") — pedido por el equipo de cocina.
+  var abreviaturas={'🍔 Hamburguesas':'H.','🌭 Perros Calientes':'P.','🍟 Salchipapas':'S.','🎁 Combos':'C.','➕ Adicionales':'Ad.','🥤 Bebidas':'B.','🎉 Promociones':'Pr.'};
+  var fullName=(abreviaturas[catKey]||'')+' '+pendingItem.name;
   var key=pendingItem.id+'|'+selectedVar.label+'|'+notas;
   var ex=cart.find(function(c){return c.key===key;});
   if(ex){ex.qty+=modalQty;}else{cart.push({key:key,id:pendingItem.id,name:fullName.trim(),variant:selectedVar.label,price:selectedVar.price,qty:modalQty,notas:notas});}
@@ -746,7 +752,19 @@ function delItem(i){
   if(cart[i].esCanje){canjeSeleccionado=null;document.getElementById('puntosCanjeTag').textContent='';}
   cart.splice(i,1);renderCart();
 }
-function clearAll(){if(cart.length>0&&!confirm('¿Limpiar pedido?'))return;cart=[];costoEnvio=0;descuentoPct=0;canjeSeleccionado=null;document.getElementById('puntosCanjeTag').textContent='';document.getElementById('cBarrio').value='';document.getElementById('envioTag').textContent='';document.getElementById('tEnvioRow').style.display='none';document.getElementById('descuentoInput').value='';renderCart();}
+function clearAll(){
+  if(cart.length>0&&!confirm(editandoPedidoId?'¿Cancelar la edición de este pedido? (no se guardan los cambios)':'¿Limpiar pedido?'))return;
+  if(editandoPedidoId){
+    editandoPedidoId=null;
+    cart=[];
+    renderCart();
+    document.getElementById('confirmBtn').textContent='Confirmar Pedido →';
+    cerrarCarritoMovil();
+    if(pedidoActual) abrirPago();
+    return;
+  }
+  cart=[];costoEnvio=0;descuentoPct=0;canjeSeleccionado=null;document.getElementById('puntosCanjeTag').textContent='';document.getElementById('cBarrio').value='';document.getElementById('envioTag').textContent='';document.getElementById('tEnvioRow').style.display='none';document.getElementById('descuentoInput').value='';renderCart();
+}
 
 function onDescuento(){
   var v=parseFloat(document.getElementById('descuentoInput').value)||0;
@@ -780,8 +798,9 @@ function toggleClienteInfo(){
 }
 
 async function confirmar(){
-  if(cart.length===0)return;
   if(confirmando)return;
+  if(editandoPedidoId) return guardarEdicionPedido();
+  if(cart.length===0)return;
   if(!window._turnoActivo){toast('⚠️ Debes abrir un turno antes de tomar pedidos');return;}
   if(tipo==='domicilio'){
     if(!document.getElementById('cNombre').value.trim()){toast('⚠️ Ingresa el nombre del cliente');return;}
@@ -832,6 +851,50 @@ async function confirmar(){
     renderCart();
   } finally {
     confirmando=false;
+    document.getElementById('confirmBtn').textContent='Confirmar Pedido →';
+  }
+}
+
+// ── EDITAR PRODUCTOS DE UN PEDIDO YA TOMADO (antes de cobrarlo) ──
+function editarPedidoActual(){
+  if(!pedidoActual||!pedidoActual.firestoreId){toast('⚠️ No se puede editar este pedido');return;}
+  editandoPedidoId=pedidoActual.firestoreId;
+  cart=(pedidoActual.items||[]).map(function(i){
+    return {key:i.nombre+'|'+i.variante+'|'+i.notas+'|'+Math.random(),id:null,name:i.nombre,variant:i.variante||'',price:i.precio,qty:i.cantidad,notas:i.notas||''};
+  });
+  document.getElementById('pagoOverlay').classList.remove('open');
+  renderCart();
+  abrirCarritoMovil();
+  document.getElementById('confirmBtn').textContent='💾 Guardar cambios';
+  toast('✏️ Editando pedido #'+pedidoActual.numero+' — agrega o quita productos y guarda');
+}
+
+async function guardarEdicionPedido(){
+  confirmando=true;
+  document.getElementById('confirmBtn').disabled=true;
+  document.getElementById('confirmBtn').textContent='Guardando...';
+  try{
+    if(cart.length===0){toast('⚠️ El pedido debe tener al menos un producto');return;}
+    var sub=cart.reduce(function(s,i){return s+i.price*i.qty;},0);
+    var items=cart.map(function(i){return{nombre:i.name,variante:i.variant,precio:i.price,cantidad:i.qty,notas:i.notas};});
+    var total=sub-(pedidoActual.descuentoValor||0)+(pedidoActual.costoEnvio||0);
+    if(window._db){
+      await window._updateDoc(window._doc(window._db,'pedidos',editandoPedidoId),{items:items,subtotal:sub,total:total});
+    }
+    pedidoActual.items=items; pedidoActual.subtotal=sub; pedidoActual.total=total;
+    // Kitchen ya tenía la comanda vieja impresa — se manda una actualizada para que sepan del cambio.
+    enviarImpresionRemota('comanda',Object.assign({},pedidoActual,{notasGenerales:'*** PEDIDO ACTUALIZADO *** '+(pedidoActual.notasGenerales||'')}));
+    toast('✅ Pedido #'+pedidoActual.numero+' actualizado');
+    editandoPedidoId=null;
+    cart=[];
+    renderCart();
+    cerrarCarritoMovil();
+    abrirPago();
+  } catch(e){
+    toast('⚠️ Error guardando cambios: '+e.message);
+  } finally{
+    confirmando=false;
+    document.getElementById('confirmBtn').disabled=false;
     document.getElementById('confirmBtn').textContent='Confirmar Pedido →';
   }
 }
@@ -909,15 +972,15 @@ function registrarIngresoEnCaja(p){
   if(p.metodoPago==='mixto' && p.pagoMixto){
     if(p.pagoMixto.efectivo>0){
       var cEf=window._cajasPorMetodo.efectivo;
-      if(cEf) window._addMovimientoAuto({referencia:ref+' (efectivo)',clasificacion:'Venta POS',fecha:new Date().toISOString().slice(0,10),tipo:'ingreso',cajaId:cEf._id,cajaNombre:cEf.nombre,monto:p.pagoMixto.efectivo,registradoPor:p.cajero||'POS'});
+      if(cEf) window._addMovimientoAuto({referencia:ref+' (efectivo)',clasificacion:'Venta POS',fecha:new Date().toISOString().slice(0,10),tipo:'ingreso',cajaId:cEf._id,cajaNombre:cEf.nombre,monto:p.pagoMixto.efectivo,registradoPor:p.cajero||'POS',pedidoId:p.firestoreId||null});
     }
     if(p.pagoMixto.transferencia>0){
       var cTr=window._cajasPorMetodo.transferencia;
-      if(cTr) window._addMovimientoAuto({referencia:ref+' (transferencia)',clasificacion:'Venta POS',fecha:new Date().toISOString().slice(0,10),tipo:'ingreso',cajaId:cTr._id,cajaNombre:cTr.nombre,monto:p.pagoMixto.transferencia,registradoPor:p.cajero||'POS'});
+      if(cTr) window._addMovimientoAuto({referencia:ref+' (transferencia)',clasificacion:'Venta POS',fecha:new Date().toISOString().slice(0,10),tipo:'ingreso',cajaId:cTr._id,cajaNombre:cTr.nombre,monto:p.pagoMixto.transferencia,registradoPor:p.cajero||'POS',pedidoId:p.firestoreId||null});
     }
   } else if(p.metodoPago){
     var c=window._cajasPorMetodo[p.metodoPago];
-    if(c) window._addMovimientoAuto({referencia:ref,clasificacion:'Venta POS',fecha:new Date().toISOString().slice(0,10),tipo:'ingreso',cajaId:c._id,cajaNombre:c.nombre,monto:p.total,registradoPor:p.cajero||'POS'});
+    if(c) window._addMovimientoAuto({referencia:ref,clasificacion:'Venta POS',fecha:new Date().toISOString().slice(0,10),tipo:'ingreso',cajaId:c._id,cajaNombre:c.nombre,monto:p.total,registradoPor:p.cajero||'POS',pedidoId:p.firestoreId||null});
   }
 }
 
