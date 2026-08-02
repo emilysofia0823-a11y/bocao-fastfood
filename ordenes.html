@@ -124,8 +124,11 @@ function render(){
     var card=document.createElement('div');
     card.className='card '+cardEstadoKey(p);
     var printBtn='<button class="del-x" onclick="reimprimirPedido(\''+p._id+'\')" title="Reimprimir factura" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;margin-left:6px;">🖨️</button>';
+    var metodoBtn=esPagado(p)?'<button class="del-x" onclick="cambiarMetodoPago(\''+p._id+'\')" title="Cambiar método de pago" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;margin-left:6px;">💳</button>':'';
     var delBtn='<button class="del-x" onclick="eliminarPedido(\''+p._id+'\',\''+p.numero+'\')" title="Eliminar pedido" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.9rem;margin-left:6px;">🗑</button>';
-    card.innerHTML='<div class="card-head"><span class="num">#'+p.numero+'</span>'+tTag+'<span class="hora">'+hora+'</span><span class="estado-tag '+estadoClass(p)+'">'+estadoLabel(p)+'</span>'+printBtn+delBtn+'</div><div class="card-body"><div class="cli">'+cliHTML+'</div><div class="items-sm">'+itemsHTML+'</div><div class="total-line"><span>Total</span><span>'+fmt(p.total)+'</span></div></div>';
+    var mLabels={efectivo:'💵 Efectivo',nequi:'📱 Nequi',transferencia:'🏦 Transferencia',mixto:'🔀 Mixto'};
+    var metodoHTML=esPagado(p)?'<div class="isrow"><span>Pago</span><span>'+(mLabels[p.metodoPago]||p.metodoPago)+'</span></div>':'';
+    card.innerHTML='<div class="card-head"><span class="num">#'+p.numero+'</span>'+tTag+'<span class="hora">'+hora+'</span><span class="estado-tag '+estadoClass(p)+'">'+estadoLabel(p)+'</span>'+printBtn+metodoBtn+delBtn+'</div><div class="card-body"><div class="cli">'+cliHTML+'</div><div class="items-sm">'+itemsHTML+metodoHTML+'</div><div class="total-line"><span>Total</span><span>'+fmt(p.total)+'</span></div></div>';
     g.appendChild(card);
   });
 }
@@ -136,6 +139,20 @@ window.reimprimirPedido=function(id){
   if(!window._reimprimir){alert('⚠️ Sin conexión con la impresora remota.');return;}
   window._reimprimir(pedido);
   alert('🖨️ Factura #'+pedido.numero+' enviada a la impresora.');
+};
+window.cambiarMetodoPago=function(id){
+  var pedido=todos.find(function(p){return p._id===id;});
+  if(!pedido||!pedido.metodoPago){alert('Este pedido todavía no ha sido cobrado.');return;}
+  if(pedido.metodoPago==='mixto'){alert('Los pagos mixtos no se pueden cambiar desde aquí todavía — avísale a Mateo.');return;}
+  var opciones={efectivo:'Efectivo',nequi:'Nequi',transferencia:'Transferencia'};
+  var actual=opciones[pedido.metodoPago]||pedido.metodoPago;
+  var nuevo=prompt('Pedido #'+pedido.numero+' — método actual: '+actual+'.\nEscribe el nuevo método exactamente: efectivo, nequi o transferencia','');
+  if(nuevo===null)return;
+  nuevo=nuevo.trim().toLowerCase();
+  if(!opciones[nuevo]){alert('Escribe exactamente: efectivo, nequi o transferencia.');return;}
+  if(nuevo===pedido.metodoPago){alert('Ya está registrado con ese método.');return;}
+  if(!confirm('¿Cambiar el pago del pedido #'+pedido.numero+' de '+actual+' a '+opciones[nuevo]+'? Esto también corrige el registro contable de tesorería.'))return;
+  if(window._cambiarMetodoPago) window._cambiarMetodoPago(pedido,nuevo);
 };
 window.eliminarPedido=function(id,numero){
   var motivo=prompt('¿Por qué vas a eliminar el pedido #'+numero+'? (obligatorio, ej: "pedido de prueba")');
@@ -150,7 +167,7 @@ window.eliminarPedido=function(id,numero){
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, query, where, getDocs, onSnapshot, doc, updateDoc, deleteDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 var app=initializeApp({apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"});
 var db=getFirestore(app);
 window._db=db; window._doc=doc; window._updateDoc=updateDoc;
@@ -175,6 +192,35 @@ window._reimprimir=function(p){
     bocaPuntos:p.bocaPuntos||null,
     estado:'pendiente', fecha:new Date().toISOString(), fechaCreacion:serverTimestamp()
   }).catch(function(e){alert('Error al reimprimir: '+e.message);});
+};
+// Cajas vinculadas a cada método de pago (para saber a cuál corregir el ingreso)
+window._cajasPorMetodo={};
+onSnapshot(collection(db,'cajas'),function(snap){
+  var m={};
+  snap.forEach(function(d){ var c=Object.assign({_id:d.id},d.data()); if(c.metodoPago) m[c.metodoPago]=c; });
+  window._cajasPorMetodo=m;
+});
+// Cambiar el método de pago de un pedido ya cobrado: corrige tanto el pedido como
+// el movimiento de tesorería (se borra el viejo y se crea uno nuevo en la caja correcta).
+window._cambiarMetodoPago=async function(pedido,nuevoMetodo){
+  try{
+    await updateDoc(doc(db,'pedidos',pedido._id),{metodoPago:nuevoMetodo});
+    var qMov=query(collection(db,'movimientos_tesoreria'),where('pedidoId','==',pedido._id));
+    var snap=await getDocs(qMov);
+    var borrados=[];
+    snap.forEach(function(d){ borrados.push(deleteDoc(doc(db,'movimientos_tesoreria',d.id))); });
+    await Promise.all(borrados);
+    var c=window._cajasPorMetodo[nuevoMetodo];
+    if(c){
+      await addDoc(collection(db,'movimientos_tesoreria'),{
+        referencia:'Venta pedido #'+pedido.numero+' (corregido)',clasificacion:'Venta POS',
+        fecha:new Date().toISOString().slice(0,10),tipo:'ingreso',cajaId:c._id,cajaNombre:c.nombre,
+        monto:pedido.total,registradoPor:(window.sess&&window.sess.nombre)||'admin',
+        pedidoId:pedido._id,fechaCreacion:serverTimestamp()
+      });
+    }
+    alert('✅ Pedido #'+pedido.numero+' actualizado a '+nuevoMetodo+'.');
+  }catch(e){ alert('Error cambiando el método de pago: '+e.message); }
 };
 // Elimina un pedido, pero primero deja registro de auditoría (qué era, quién y por qué)
 window._eliminarPedidoConMotivo=function(id,motivo,pedido){
