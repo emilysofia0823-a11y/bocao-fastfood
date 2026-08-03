@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Mi Armario ✨</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --pink:#FF6FB5;--pink-deep:#E0399A;--pink-soft:#FFE1F1;
+  --purple:#B06EFF;--purple-deep:#8A3FE0;--lavender:#F1E3FF;
+  --gold:#FFC94D;--gold-deep:#E0A400;
+  --blue:#7FD8FF;
+  --text:#3D2B4A;--muted:#8C7A99;--card:#FFFFFF;--border:#F5D9EA;
+}
+body{
+  font-family:'Quicksand',Arial,sans-serif;color:var(--text);min-height:100vh;padding-bottom:50px;
+  background:
+    radial-gradient(circle at 8% 15%,rgba(255,255,255,.9) 0%,transparent 1.2%),
+    radial-gradient(circle at 25% 45%,rgba(255,255,255,.8) 0%,transparent 1%),
+    radial-gradient(circle at 42% 12%,rgba(255,255,255,.85) 0%,transparent 1.1%),
+    radial-gradient(circle at 60% 55%,rgba(255,255,255,.7) 0%,transparent 1%),
+    radial-gradient(circle at 78% 22%,rgba(255,255,255,.9) 0%,transparent 1.2%),
+    radial-gradient(circle at 90% 60%,rgba(255,255,255,.75) 0%,transparent 1%),
+    radial-gradient(circle at 15% 75%,rgba(255,255,255,.8) 0%,transparent 1.1%),
+    radial-gradient(circle at 55% 85%,rgba(255,255,255,.7) 0%,transparent 1%),
+    radial-gradient(circle at 33% 95%,rgba(255,255,255,.85) 0%,transparent 1.2%),
+    radial-gradient(circle at 95% 90%,rgba(255,255,255,.7) 0%,transparent 1%),
+    linear-gradient(160deg,#FFE1F1 0%,#F6E3FF 45%,#E4F1FF 100%);
+  background-attachment:fixed;background-size:cover;
+}
+::selection{background:var(--pink);color:#fff;}
+
+header{
+  position:sticky;top:0;z-index:100;padding:18px 20px 16px;
+  background:linear-gradient(120deg,var(--pink),var(--purple) 55%,var(--pink-deep));
+  background-size:220% 220%;animation:shimmerMove 8s ease infinite;
+  box-shadow:0 4px 20px rgba(176,110,255,.35);
+}
+@keyframes shimmerMove{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+.logo-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.logo{
+  font-family:'Fredoka',sans-serif;font-weight:700;font-size:1.5rem;letter-spacing:.3px;
+  background:linear-gradient(90deg,#FFF6D5,var(--gold) 40%,#FFF6D5 60%,var(--gold));
+  background-size:250% auto;-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:goldShine 4s linear infinite;
+}
+@keyframes goldShine{to{background-position:250% center;}}
+.sparkle{display:inline-block;animation:twinkle 1.8s ease-in-out infinite;}
+.sparkle:nth-child(2){animation-delay:.4s;}
+.sparkle:nth-child(3){animation-delay:.9s;}
+@keyframes twinkle{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.8);}}
+
+.tabs{display:flex;gap:8px;}
+.tab{flex:1;text-align:center;padding:10px 8px;border-radius:50px;border:2px solid rgba(255,255,255,.5);background:rgba(255,255,255,.18);color:#fff;font-weight:600;font-size:0.82rem;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.tab.active{background:#fff;color:var(--pink-deep);border-color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.15);}
+
+.wrap{max-width:1000px;margin:0 auto;padding:20px 16px 0;}
+
+/* ── Tiles (categorías del armario) ── */
+.home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:14px;}
+.cat-tile{
+  position:relative;background:var(--card);border:2px solid var(--border);border-radius:20px;padding:22px 12px;
+  text-align:center;cursor:pointer;transition:all .2s;overflow:hidden;
+  box-shadow:0 3px 0 var(--border),0 8px 20px rgba(224,57,154,.08);
+}
+.cat-tile::before{content:'';position:absolute;top:-40%;left:-20%;width:60%;height:180%;background:rgba(255,255,255,.55);transform:rotate(20deg);transition:left .5s;}
+.cat-tile:hover::before{left:120%;}
+.cat-tile:hover{border-color:var(--pink);transform:translateY(-4px);box-shadow:0 3px 0 var(--pink),0 10px 22px rgba(224,57,154,.2);}
+.cat-tile-icon{font-size:2.3rem;margin-bottom:8px;display:block;}
+.cat-tile-name{font-family:'Fredoka',sans-serif;font-weight:600;font-size:0.92rem;color:var(--pink-deep);margin-bottom:3px;}
+.cat-tile-total{font-size:0.7rem;color:var(--muted);}
+.cat-tile-badge{position:absolute;top:-6px;right:-6px;background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:#fff;font-size:0.7rem;font-weight:800;border-radius:50%;min-width:22px;height:22px;line-height:22px;padding:0 4px;box-shadow:0 2px 6px rgba(0,0,0,.2);}
+
+.detail-head{display:flex;align-items:center;gap:10px;padding:2px 2px 16px;flex-wrap:wrap;}
+.back-btn{background:#fff;border:2px solid var(--border);color:var(--pink-deep);border-radius:50px;padding:7px 16px;font-weight:700;font-size:0.8rem;cursor:pointer;}
+.back-btn:hover{border-color:var(--pink);}
+.detail-icon{font-size:1.6rem;}
+.detail-name{font-family:'Fredoka',sans-serif;font-weight:600;font-size:1.15rem;color:var(--pink-deep);}
+.detail-total{margin-left:auto;font-size:0.75rem;color:var(--muted);}
+
+/* ── Grid de prendas ── */
+.item-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;}
+.item-card{background:var(--card);border:2px solid var(--border);border-radius:18px;overflow:hidden;position:relative;box-shadow:0 3px 0 var(--border);transition:transform .2s;}
+.item-card:hover{transform:translateY(-3px);}
+.item-card img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block;background:var(--pink-soft);}
+.item-card .item-name{padding:8px 10px 10px;font-size:0.8rem;font-weight:600;text-align:center;}
+.item-del{position:absolute;top:6px;right:6px;background:rgba(255,255,255,.9);border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:0.8rem;color:var(--pink-deep);box-shadow:0 2px 6px rgba(0,0,0,.15);}
+
+.empty-cat{color:var(--muted);font-size:0.85rem;padding:30px 4px;grid-column:1/-1;text-align:center;}
+
+/* ── Referencias (mood board) ── */
+.ref-grid{columns:2 220px;column-gap:14px;}
+@media(min-width:640px){.ref-grid{columns:3 220px;}}
+.ref-card{break-inside:avoid;margin-bottom:14px;background:var(--card);border:2px solid var(--border);border-radius:18px;overflow:hidden;position:relative;box-shadow:0 3px 0 var(--border);}
+.ref-card img{width:100%;display:block;}
+.ref-nota{padding:8px 10px;font-size:0.78rem;color:var(--muted);}
+.ref-del{position:absolute;top:6px;right:6px;background:rgba(255,255,255,.9);border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:0.8rem;color:var(--pink-deep);box-shadow:0 2px 6px rgba(0,0,0,.15);}
+
+/* ── Outfits ── */
+.outfit-gen-box{background:var(--card);border:2px solid var(--border);border-radius:22px;padding:24px 18px;text-align:center;margin-bottom:22px;box-shadow:0 4px 0 var(--border),0 10px 24px rgba(176,110,255,.1);}
+.outfit-gen-title{font-family:'Fredoka',sans-serif;font-weight:600;font-size:1.1rem;color:var(--purple-deep);margin-bottom:6px;}
+.outfit-gen-sub{font-size:0.8rem;color:var(--muted);margin-bottom:16px;}
+.btn-magic{background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;border:none;padding:13px 28px;border-radius:50px;font-family:'Fredoka',sans-serif;font-weight:600;font-size:0.95rem;cursor:pointer;box-shadow:0 6px 16px rgba(176,110,255,.4);transition:transform .15s;}
+.btn-magic:hover{transform:scale(1.03);}
+.outfit-preview{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;margin-top:20px;}
+.outfit-preview .item-card img{aspect-ratio:1/1;}
+.outfit-actions{display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap;}
+.btn-soft{background:var(--lavender);color:var(--purple-deep);border:none;padding:10px 20px;border-radius:50px;font-weight:700;font-size:0.85rem;cursor:pointer;}
+.btn-soft:hover{background:#E7D2FF;}
+
+.saved-outfit{background:var(--card);border:2px solid var(--border);border-radius:18px;padding:14px;margin-bottom:14px;box-shadow:0 3px 0 var(--border);}
+.saved-outfit-name{font-family:'Fredoka',sans-serif;font-weight:600;color:var(--pink-deep);margin-bottom:10px;font-size:0.95rem;}
+.saved-outfit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;}
+.saved-outfit-grid img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;background:var(--pink-soft);}
+.saved-del{background:none;border:none;color:var(--muted);font-size:0.8rem;cursor:pointer;float:right;}
+
+/* ── FAB + modal ── */
+.fab{position:fixed;bottom:20px;right:20px;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;border:none;font-size:1.7rem;cursor:pointer;box-shadow:0 8px 20px rgba(176,110,255,.5);z-index:200;}
+.fab:hover{transform:scale(1.06);}
+
+.overlay{position:fixed;inset:0;background:rgba(61,43,74,.55);display:none;align-items:center;justify-content:center;z-index:900;padding:16px;}
+.overlay.show{display:flex;}
+.modal{background:#fff;border-radius:24px;padding:22px;width:100%;max-width:400px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 50px rgba(0,0,0,.3);}
+.modal h3{font-family:'Fredoka',sans-serif;color:var(--pink-deep);font-size:1.1rem;margin-bottom:14px;}
+.modal-close{float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted);}
+.field{margin-bottom:12px;}
+.field label{font-size:0.72rem;font-weight:700;color:var(--purple-deep);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:5px;}
+.field input,.field select,.field textarea{width:100%;background:var(--pink-soft);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:12px;font-size:0.9rem;outline:none;font-family:inherit;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--pink);}
+.preview-img{width:100%;max-height:180px;object-fit:contain;border-radius:14px;margin-bottom:10px;background:var(--pink-soft);display:none;}
+.preview-img.show{display:block;}
+.modal-send{width:100%;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;border:none;padding:13px;border-radius:14px;font-weight:700;font-family:'Fredoka',sans-serif;font-size:0.92rem;cursor:pointer;margin-top:6px;}
+.modal-send:hover{opacity:.92;}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo-row">
+    <span class="sparkle">✨</span>
+    <div class="logo">Mi Armario</div>
+    <span class="sparkle">✨</span>
+  </div>
+  <div class="tabs">
+    <div class="tab active" id="tabArmario" onclick="cambiarSeccion('armario')">👗 Armario</div>
+    <div class="tab" id="tabRef" onclick="cambiarSeccion('referencias')">📌 Referencias</div>
+    <div class="tab" id="tabOutfits" onclick="cambiarSeccion('outfits')">💫 Outfits</div>
+  </div>
+</header>
+
+<div class="wrap" id="wrap"></div>
+
+<button class="fab" id="fab" onclick="abrirAgregar()" title="Agregar">+</button>
+
+<!-- MODAL: agregar prenda -->
+<div class="overlay" id="prendaOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="cerrarModal('prendaOverlay')">✕</button>
+    <h3>👗 Nueva prenda</h3>
+    <img class="preview-img" id="prendaPreview"/>
+    <div class="field">
+      <label>Foto</label>
+      <input type="file" id="prendaFoto" accept="image/*" onchange="previsualizar(this,'prendaPreview')"/>
+    </div>
+    <div class="field">
+      <label>Nombre</label>
+      <input type="text" id="prendaNombre" placeholder="Ej: Blusa floral"/>
+    </div>
+    <div class="field">
+      <label>Categoría</label>
+      <select id="prendaCategoria"></select>
+    </div>
+    <button class="modal-send" onclick="guardarPrenda()">✨ Guardar prenda</button>
+  </div>
+</div>
+
+<!-- MODAL: agregar referencia -->
+<div class="overlay" id="refOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="cerrarModal('refOverlay')">✕</button>
+    <h3>📌 Nueva referencia</h3>
+    <img class="preview-img" id="refPreview"/>
+    <div class="field">
+      <label>Imagen (captura de Pinterest, etc.)</label>
+      <input type="file" id="refFoto" accept="image/*" onchange="previsualizar(this,'refPreview')"/>
+    </div>
+    <div class="field">
+      <label>Nota (opcional)</label>
+      <textarea id="refNota" rows="2" placeholder="Ej: outfit para fiesta, colores pastel..."></textarea>
+    </div>
+    <button class="modal-send" onclick="guardarReferencia()">📌 Guardar referencia</button>
+  </div>
+</div>
+
+<script>
+var CATS=[
+  {id:'tops',nombre:'Tops',icono:'👚'},
+  {id:'bottoms',nombre:'Bottoms',icono:'👖'},
+  {id:'vestidos',nombre:'Vestidos',icono:'👗'},
+  {id:'abrigos',nombre:'Abrigos',icono:'🧥'},
+  {id:'zapatos',nombre:'Zapatos',icono:'👟'},
+  {id:'accesorios',nombre:'Accesorios',icono:'👜'}
+];
+var prendas=[], referencias=[], outfitsGuardados=[];
+var seccion='armario', categoriaActual=null;
+var outfitActual=null;
+var archivoSeleccionado=null;
+
+function catInfo(id){ return CATS.find(function(c){return c.id===id;}) || {id:id,nombre:id,icono:'✨'}; }
+
+function cambiarSeccion(s){
+  seccion=s; categoriaActual=null;
+  ['tabArmario','tabRef','tabOutfits'].forEach(function(id){document.getElementById(id).classList.remove('active');});
+  document.getElementById({armario:'tabArmario',referencias:'tabRef',outfits:'tabOutfits'}[s]).classList.add('active');
+  document.getElementById('fab').style.display = s==='outfits' ? 'none' : 'flex';
+  render();
+}
+
+function render(){
+  if(seccion==='armario'){ categoriaActual ? renderCategoriaArmario() : renderHomeArmario(); }
+  else if(seccion==='referencias'){ renderReferencias(); }
+  else if(seccion==='outfits'){ renderOutfits(); }
+}
+
+function renderHomeArmario(){
+  var wrap=document.getElementById('wrap'); wrap.innerHTML='';
+  var grid=document.createElement('div'); grid.className='home-grid';
+  CATS.forEach(function(c){
+    var items=prendas.filter(function(p){return p.categoria===c.id;});
+    var tile=document.createElement('div'); tile.className='cat-tile';
+    tile.onclick=function(){ categoriaActual=c.id; render(); window.scrollTo(0,0); };
+    tile.innerHTML=(items.length>0?'<span class="cat-tile-badge">'+items.length+'</span>':'')+
+      '<span class="cat-tile-icon">'+c.icono+'</span><div class="cat-tile-name">'+c.nombre+'</div><div class="cat-tile-total">'+items.length+' prenda'+(items.length===1?'':'s')+'</div>';
+    grid.appendChild(tile);
+  });
+  wrap.appendChild(grid);
+}
+
+function renderCategoriaArmario(){
+  var info=catInfo(categoriaActual);
+  var items=prendas.filter(function(p){return p.categoria===categoriaActual;});
+  var wrap=document.getElementById('wrap'); wrap.innerHTML='';
+  var head=document.createElement('div'); head.className='detail-head';
+  head.innerHTML='<button class="back-btn" onclick="categoriaActual=null;render();">← Armario</button><span class="detail-icon">'+info.icono+'</span><span class="detail-name">'+info.nombre+'</span><span class="detail-total">'+items.length+' prenda'+(items.length===1?'':'s')+'</span>';
+  wrap.appendChild(head);
+  var grid=document.createElement('div'); grid.className='item-grid';
+  if(items.length===0){ grid.innerHTML='<div class="empty-cat">Aún no tienes prendas aquí 🌸<br/>Toca el botón + para agregar una.</div>'; }
+  else{
+    items.forEach(function(p){
+      var card=document.createElement('div'); card.className='item-card';
+      card.innerHTML='<button class="item-del" onclick="eliminarPrenda(\''+p._id+'\')">✕</button><img src="'+p.imagenUrl+'"/><div class="item-name">'+escapeHtml(p.nombre)+'</div>';
+      grid.appendChild(card);
+    });
+  }
+  wrap.appendChild(grid);
+}
+
+function renderReferencias(){
+  var wrap=document.getElementById('wrap'); wrap.innerHTML='';
+  var head=document.createElement('div'); head.className='detail-head';
+  head.innerHTML='<span class="detail-icon">📌</span><span class="detail-name">Referencias</span><span class="detail-total">'+referencias.length+' guardada'+(referencias.length===1?'':'s')+'</span>';
+  wrap.appendChild(head);
+  if(referencias.length===0){
+    wrap.innerHTML+='<div class="empty-cat">Guarda capturas de Pinterest o looks que te inspiren 💖<br/>Toca el botón + para agregar una.</div>';
+    return;
+  }
+  var grid=document.createElement('div'); grid.className='ref-grid';
+  referencias.forEach(function(r){
+    var card=document.createElement('div'); card.className='ref-card';
+    card.innerHTML='<button class="ref-del" onclick="eliminarReferencia(\''+r._id+'\')">✕</button><img src="'+r.imagenUrl+'"/>'+(r.nota?'<div class="ref-nota">'+escapeHtml(r.nota)+'</div>':'');
+    grid.appendChild(card);
+  });
+  wrap.appendChild(grid);
+}
+
+function renderOutfits(){
+  var wrap=document.getElementById('wrap'); wrap.innerHTML='';
+  var box=document.createElement('div'); box.className='outfit-gen-box';
+  box.innerHTML=
+    '<div class="outfit-gen-title">✨ Generador de outfits</div>'+
+    '<div class="outfit-gen-sub">Arma una combinación al azar con tus propias prendas</div>'+
+    '<button class="btn-magic" onclick="generarOutfit()">🔮 Generar outfit</button>'+
+    '<div id="outfitPreviewWrap"></div>';
+  wrap.appendChild(box);
+  if(outfitActual) pintarOutfitActual();
+
+  if(outfitsGuardados.length>0){
+    var titulo=document.createElement('div'); titulo.className='detail-name'; titulo.style.marginBottom='12px'; titulo.textContent='💫 Mis outfits guardados';
+    wrap.appendChild(titulo);
+    outfitsGuardados.forEach(function(o){
+      var box2=document.createElement('div'); box2.className='saved-outfit';
+      var grid='<div class="saved-outfit-grid">'+o.prendas.map(function(p){return '<img src="'+p.imagenUrl+'" title="'+escapeHtml(p.nombre)+'"/>';}).join('')+'</div>';
+      box2.innerHTML='<button class="saved-del" onclick="eliminarOutfitGuardado(\''+o._id+'\')">✕</button><div class="saved-outfit-name">'+escapeHtml(o.nombre)+'</div>'+grid;
+      wrap.appendChild(box2);
+    });
+  }
+}
+
+function generarOutfit(){
+  var catsConItems=CATS.filter(function(c){return prendas.some(function(p){return p.categoria===c.id;});});
+  if(catsConItems.length===0){ alert('Agrega algunas prendas a tu armario primero 🌸'); return; }
+  var seleccion=[];
+  catsConItems.forEach(function(c){
+    var opciones=prendas.filter(function(p){return p.categoria===c.id;});
+    seleccion.push(opciones[Math.floor(Math.random()*opciones.length)]);
+  });
+  outfitActual=seleccion;
+  pintarOutfitActual();
+}
+
+function pintarOutfitActual(){
+  var w=document.getElementById('outfitPreviewWrap');
+  if(!w) return;
+  w.innerHTML=
+    '<div class="outfit-preview">'+outfitActual.map(function(p){return '<div class="item-card"><img src="'+p.imagenUrl+'"/><div class="item-name">'+escapeHtml(p.nombre)+'</div></div>';}).join('')+'</div>'+
+    '<div class="outfit-actions">'+
+      '<button class="btn-soft" onclick="generarOutfit()">🔀 Otra combinación</button>'+
+      '<button class="btn-magic" onclick="guardarOutfitActual()">💾 Guardar outfit</button>'+
+    '</div>';
+}
+
+function guardarOutfitActual(){
+  if(!outfitActual) return;
+  var nombre=prompt('¿Cómo se llama este outfit?','Look de hoy');
+  if(nombre===null) return;
+  if(window._guardarOutfit) window._guardarOutfit({nombre:nombre.trim()||'Look sin nombre',prendas:outfitActual.map(function(p){return{id:p._id,nombre:p.nombre,imagenUrl:p.imagenUrl};})});
+}
+
+function eliminarOutfitGuardado(id){
+  if(!confirm('¿Eliminar este outfit guardado?')) return;
+  if(window._eliminarOutfit) window._eliminarOutfit(id);
+}
+
+function escapeHtml(s){var d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+
+// ── Modales ──
+function abrirAgregar(){
+  if(seccion==='armario') abrirModalPrenda();
+  else if(seccion==='referencias') abrirModalReferencia();
+}
+function cerrarModal(id){ document.getElementById(id).classList.remove('show'); archivoSeleccionado=null; }
+function previsualizar(input,imgId){
+  archivoSeleccionado=input.files[0];
+  var img=document.getElementById(imgId);
+  if(archivoSeleccionado){ img.src=URL.createObjectURL(archivoSeleccionado); img.classList.add('show'); }
+}
+function abrirModalPrenda(){
+  var sel=document.getElementById('prendaCategoria'); sel.innerHTML='';
+  CATS.forEach(function(c){ var o=document.createElement('option'); o.value=c.id; o.textContent=c.icono+' '+c.nombre; sel.appendChild(o); });
+  if(categoriaActual) sel.value=categoriaActual;
+  document.getElementById('prendaNombre').value='';
+  document.getElementById('prendaFoto').value='';
+  document.getElementById('prendaPreview').classList.remove('show');
+  archivoSeleccionado=null;
+  document.getElementById('prendaOverlay').classList.add('show');
+}
+function guardarPrenda(){
+  var nombre=document.getElementById('prendaNombre').value.trim();
+  var categoria=document.getElementById('prendaCategoria').value;
+  if(!archivoSeleccionado){ alert('Selecciona una foto'); return; }
+  if(!nombre){ alert('Ponle un nombre a la prenda'); return; }
+  if(window._subirPrenda) window._subirPrenda(archivoSeleccionado,nombre,categoria);
+  cerrarModal('prendaOverlay');
+}
+function abrirModalReferencia(){
+  document.getElementById('refNota').value='';
+  document.getElementById('refFoto').value='';
+  document.getElementById('refPreview').classList.remove('show');
+  archivoSeleccionado=null;
+  document.getElementById('refOverlay').classList.add('show');
+}
+function guardarReferencia(){
+  if(!archivoSeleccionado){ alert('Selecciona una imagen'); return; }
+  var nota=document.getElementById('refNota').value.trim();
+  if(window._subirReferencia) window._subirReferencia(archivoSeleccionado,nota);
+  cerrarModal('refOverlay');
+}
+function eliminarPrenda(id){ if(confirm('¿Eliminar esta prenda?') && window._eliminarPrenda) window._eliminarPrenda(id); }
+function eliminarReferencia(id){ if(confirm('¿Eliminar esta referencia?') && window._eliminarReferencia) window._eliminarReferencia(id); }
+
+render();
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, doc, deleteDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+var app=initializeApp({apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"});
+var db=getFirestore(app);
+var storage=getStorage(app);
+
+window._subirPrenda=async function(archivo,nombre,categoria){
+  try{
+    var path='armario/prendas/'+Date.now()+'_'+archivo.name;
+    var sref=ref(storage,path);
+    await uploadBytes(sref,archivo);
+    var url=await getDownloadURL(sref);
+    await addDoc(collection(db,'armario_prendas'),{nombre:nombre,categoria:categoria,imagenUrl:url,storagePath:path,fechaCreacion:serverTimestamp()});
+  }catch(e){ alert('Error subiendo la prenda: '+e.message); }
+};
+window._eliminarPrenda=async function(id){
+  try{
+    var p=window.prendas.find(function(x){return x._id===id;});
+    await deleteDoc(doc(db,'armario_prendas',id));
+    if(p&&p.storagePath){ deleteObject(ref(storage,p.storagePath)).catch(function(){}); }
+  }catch(e){ alert('Error eliminando: '+e.message); }
+};
+
+window._subirReferencia=async function(archivo,nota){
+  try{
+    var path='armario/referencias/'+Date.now()+'_'+archivo.name;
+    var sref=ref(storage,path);
+    await uploadBytes(sref,archivo);
+    var url=await getDownloadURL(sref);
+    await addDoc(collection(db,'armario_referencias'),{imagenUrl:url,storagePath:path,nota:nota||'',fechaCreacion:serverTimestamp()});
+  }catch(e){ alert('Error subiendo la referencia: '+e.message); }
+};
+window._eliminarReferencia=async function(id){
+  try{
+    var r=window.referencias.find(function(x){return x._id===id;});
+    await deleteDoc(doc(db,'armario_referencias',id));
+    if(r&&r.storagePath){ deleteObject(ref(storage,r.storagePath)).catch(function(){}); }
+  }catch(e){ alert('Error eliminando: '+e.message); }
+};
+
+window._guardarOutfit=async function(outfit){
+  try{ await addDoc(collection(db,'armario_outfits'),Object.assign({},outfit,{fechaCreacion:serverTimestamp()})); }
+  catch(e){ alert('Error guardando el outfit: '+e.message); }
+};
+window._eliminarOutfit=async function(id){
+  try{ await deleteDoc(doc(db,'armario_outfits',id)); }
+  catch(e){ alert('Error eliminando: '+e.message); }
+};
+
+onSnapshot(collection(db,'armario_prendas'),function(snap){
+  var lista=[]; snap.forEach(function(d){lista.push(Object.assign({_id:d.id},d.data()));});
+  lista.sort(function(a,b){return (a.nombre||'').localeCompare(b.nombre||'');});
+  window.prendas=lista; if(window.render) window.render();
+});
+onSnapshot(collection(db,'armario_referencias'),function(snap){
+  var lista=[]; snap.forEach(function(d){lista.push(Object.assign({_id:d.id},d.data()));});
+  lista.sort(function(a,b){var fa=a.fechaCreacion&&a.fechaCreacion.seconds||0,fb=b.fechaCreacion&&b.fechaCreacion.seconds||0;return fb-fa;});
+  window.referencias=lista; if(window.render) window.render();
+});
+onSnapshot(collection(db,'armario_outfits'),function(snap){
+  var lista=[]; snap.forEach(function(d){lista.push(Object.assign({_id:d.id},d.data()));});
+  lista.sort(function(a,b){var fa=a.fechaCreacion&&a.fechaCreacion.seconds||0,fb=b.fechaCreacion&&b.fechaCreacion.seconds||0;return fb-fa;});
+  window.outfitsGuardados=lista; if(window.render) window.render();
+});
+</script>
+</body>
+</html>
