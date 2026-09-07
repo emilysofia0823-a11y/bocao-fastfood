@@ -35,6 +35,9 @@ header{background:linear-gradient(135deg,#A6182E,#7A0F20);padding:10px 20px;disp
 .caja-card .csub{font-size:0.7rem;color:var(--muted);margin-top:2px;}
 .caja-card .csaldo{font-family:'Baloo 2',sans-serif;font-size:1.2rem;font-weight:700;color:var(--red);}
 .caja-card .csaldo.neg{color:#8a1f2f;}
+.caja-card .cright{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+.btn-edit-caja{background:none;border:1px solid var(--border);color:var(--muted);padding:3px 10px;border-radius:50px;font-size:0.68rem;font-weight:700;cursor:pointer;}
+.btn-edit-caja:hover{border-color:var(--blue);color:var(--blue);}
 .btn-add-caja{margin-top:16px;padding:10px 18px;border-radius:10px;border:2px dashed var(--border);background:none;color:var(--muted);font-weight:700;cursor:pointer;font-size:0.85rem;}
 .btn-add-caja:hover{border-color:var(--red);color:var(--red);}
 
@@ -128,6 +131,34 @@ header{background:linear-gradient(135deg,#A6182E,#7A0F20);padding:10px 20px;disp
   </div>
 </div>
 
+<!-- MODAL EDITAR CAJA -->
+<div class="overlay" id="editCajaOverlay">
+  <div class="modal">
+    <h3>✏️ Editar caja</h3>
+    <div class="f-field">
+      <label>Nombre de la caja *</label>
+      <input type="text" id="ecNombre" placeholder="Ej: BANCOLOMBIA, EFECTIVO, NEQUI ALEX..."/>
+    </div>
+    <div class="f-field">
+      <label>Saldo real actual</label>
+      <input type="number" id="ecSaldo" placeholder="0"/>
+    </div>
+    <div class="f-field">
+      <label>Vincular a método de pago (opcional)</label>
+      <select id="ecMetodo">
+        <option value="">Ninguno — solo movimientos manuales</option>
+        <option value="efectivo">💵 Efectivo — recibe ventas en efectivo</option>
+        <option value="nequi">📱 Nequi — recibe ventas por Nequi</option>
+        <option value="transferencia">🏦 Transferencia — recibe ventas por transferencia</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="mbtn-cancel" onclick="cerrarEditarCaja()">Cancelar</button>
+      <button class="mbtn-ok" onclick="confirmarEditarCaja()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
 <!-- INGRESOS / GASTOS -->
 <div class="view" id="viewMovimientos">
   <div class="form-box">
@@ -211,7 +242,9 @@ function renderLiquidos(){
     var mLabels={efectivo:'💵 Recibe ventas en efectivo',nequi:'📱 Recibe ventas por Nequi',transferencia:'🏦 Recibe ventas por transferencia'};
     var linkHTML=c.metodoPago?'<div class="clink">'+(mLabels[c.metodoPago]||c.metodoPago)+'</div>':'<div class="csub">Caja manual</div>';
     var card=document.createElement('div'); card.className='caja-card';
-    card.innerHTML='<div><div class="cnombre">'+c.nombre+'</div>'+linkHTML+'</div><div class="csaldo'+(saldo<0?' neg':'')+'">'+fmt(saldo)+'</div>';
+    card.innerHTML='<div><div class="cnombre">'+c.nombre+'</div>'+linkHTML+'</div>'+
+      '<div class="cright"><div class="csaldo'+(saldo<0?' neg':'')+'">'+fmt(saldo)+'</div>'+
+      '<button class="btn-edit-caja" onclick="abrirEditarCaja(\''+c._id+'\')">✏️ Editar</button></div>';
     g.appendChild(card);
   });
   document.getElementById('balanceTotal').textContent=fmt(total);
@@ -242,6 +275,30 @@ window.confirmarNuevaCaja=function(){
   var metodo=document.getElementById('ncMetodo').value||null;
   if(window._addCaja) window._addCaja({nombre:nombre.toUpperCase(),saldoInicial:si,metodoPago:metodo});
   cerrarNuevaCaja();
+};
+
+window.abrirEditarCaja=function(id){
+  var c=cajas.find(function(x){return x._id===id;});
+  if(!c)return;
+  document.getElementById('ecNombre').value=c.nombre||'';
+  document.getElementById('ecSaldo').value=saldoDeCaja(id);
+  document.getElementById('ecMetodo').value=c.metodoPago||'';
+  document.getElementById('editCajaOverlay').dataset.cajaId=id;
+  document.getElementById('editCajaOverlay').classList.add('open');
+};
+window.cerrarEditarCaja=function(){document.getElementById('editCajaOverlay').classList.remove('open');};
+window.confirmarEditarCaja=function(){
+  var id=document.getElementById('editCajaOverlay').dataset.cajaId;
+  var c=cajas.find(function(x){return x._id===id;});
+  if(!c)return;
+  var nombre=document.getElementById('ecNombre').value.trim();
+  if(!nombre){alert('Escribe un nombre para la caja.');return;}
+  var nuevoSaldo=parseFloat(document.getElementById('ecSaldo').value)||0;
+  var metodo=document.getElementById('ecMetodo').value||null;
+  var sumaMovimientos=saldoDeCaja(id)-(c.saldoInicial||0);
+  var nuevoSaldoInicial=nuevoSaldo-sumaMovimientos;
+  if(window._updateCaja) window._updateCaja(id,{nombre:nombre.toUpperCase(),saldoInicial:nuevoSaldoInicial,metodoPago:metodo});
+  cerrarEditarCaja();
 };
 
 window.selTipoMov=function(t){
@@ -303,12 +360,15 @@ document.getElementById('mFecha').value=new Date().toISOString().slice(0,10);
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 var app=initializeApp({apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"});
 var db=getFirestore(app);
 
 window._addCaja=function(caja){
   addDoc(collection(db,'cajas'),Object.assign({},caja,{fechaCreacion:serverTimestamp()})).catch(function(e){alert('Error: '+e.message);});
+};
+window._updateCaja=function(id,data){
+  updateDoc(doc(db,'cajas',id),data).catch(function(e){alert('Error: '+e.message);});
 };
 window._addMovimiento=function(mov){
   addDoc(collection(db,'movimientos_tesoreria'),Object.assign({},mov,{fechaCreacion:serverTimestamp()})).catch(function(e){alert('Error: '+e.message);});
