@@ -909,7 +909,7 @@ function descontarInventario(items){
   if(!window._invMap || !window._decInv) return; // inventario no cargado aún
   var ded={}; // normNombre -> cantidad total
   items.forEach(function(it){
-    var receta=RECETAS[it.id];
+    var receta=(window._recetasDB&&window._recetasDB[it.id])||RECETAS[it.id];
     if(!receta) return;
     var extra=[];
     var v=normIng(it.variant);
@@ -1284,6 +1284,16 @@ try {
     var m={};
     snap.forEach(function(d){ var c=Object.assign({_id:d.id},d.data()); if(c.metodoPago) m[c.metodoPago]=c; });
     window._cajasPorMetodo=m;
+  });
+  // Recetas personalizadas (creadas/editadas desde recetas.html) — tienen prioridad sobre las de recetas.js
+  window._recetasDB={};
+  onSnapshot(collection(db,'recetas'),function(snap){
+    var m={};
+    snap.forEach(function(d){
+      var data=d.data();
+      m[d.id]=(data.ingredientes||[]).map(function(i){return[i.nombre,i.cantidad];});
+    });
+    window._recetasDB=m;
   });
   // Inventario: mapa nombre→id para descontar, y decremento atómico
   window._invMap={};

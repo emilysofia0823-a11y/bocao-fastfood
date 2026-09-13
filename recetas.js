@@ -22,6 +22,7 @@ var RECETAS = {
   s4:[['papas fritas',300],['manguera',0.5],['papa chongo',40],['queso duro',40],['BUTIFARRA',2],['SALSA TARTARA',50],['GEL DE PIÑA',40],['lechuga batavia',30],['maiz dulce',25],['mozarella',2],['J1',1],['TENEDORES',2],['BOLSAS BLANCAS',1],['Salchicha suiza',0.5]],
   s6:[['manguera',1],['papas fritas',500],['papa chongo',30],['SALSA TARTARA',50],['pollo',100],['chorizo',1],['cerdo',80],['lechuga batavia',20],['queso duro',30],['GEL DE PIÑA',30],['TENEDORES',3],['BOLSAS BLANCAS',1],['BANDEJA HONDA',1]],
   s5:[['papa chongo',120],['SALSA TARTARA',120],['lechuga batavia',80],['GEL DE PIÑA',100],['chorizo',2],['pollo',200],['BUTIFARRA',2],['queso duro',80],['BANDEJA HONDA',1],['PAPEL ALUMINIO',1],['TENEDORES',4],['BOLSAS BLANCAS',1],['manguera',1],['cerdo',160],['papas fritas',700]],
+  custom_1787419305404:[['papas fritas',220],['manguera',0.5],['chicharron de cerdo',100],['salchicha de perro',1],['QUESO CUADRITOS',40],['Plátano maduro',60],['SALSA TARTARA',40],['lechuga batavia',20],['papa chongo',40],['GEL DE PIÑA',30],['J1',1],['TENEDORES',1],['BOLSAS BLANCAS',1]],
   // ── COMBOS ──
   co2:[['Pan de hamburguesa',1],['CARNE DE HAMBURGUESA',90],['mozarella',0.5],['Lonchita amarilla',0.5],['tomate',25],['lechuga batavia',5],['SALSA BASE',20],['SALSA TARTARA',10],['papas fritas',100],['bebida gaseosa postobon cero 250ml',1],['PAPEL PARAFINADO',1],['BOLSAS DE PAPEL',1],['PALILLO SENCILLO',1],['BOLSAS BLANCAS',1],['SALSERO 0.5',1]],
   co6:[['pan perro',3],['salchicha de perro',3],['SALSA TARTARA',45],['lechuga batavia',30],['queso duro',30],['papa chongo',45],['GEL DE PIÑA',45],['bebida gaseosa postobon cero 250ml',3],['PAPEL ALUMINIO',3],['BOLSA BLANCA 3KL',3]],
@@ -62,6 +63,7 @@ var MENU_INFO = {
   s4:{nombre:"Salchipapa Boca'o (Para 2)",cat:'🍟 Salchipapas'},
   s6:{nombre:'Salvajada (Para 3)',cat:'🍟 Salchipapas'},
   s5:{nombre:'Rompecintura (Para 4-5)',cat:'🍟 Salchipapas'},
+  custom_1787419305404:{nombre:'PORKYPAPA',cat:'🍟 Salchipapas'},
   co2:{nombre:'Combo Clásico',cat:'🎁 Combos'},
   co6:{nombre:'Combo Triple Antojo',cat:'🎁 Combos'},
   co3:{nombre:'Combo Bacano',cat:'🎁 Combos'},

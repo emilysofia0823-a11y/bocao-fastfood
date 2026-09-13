@@ -25,16 +25,43 @@ header{background:linear-gradient(135deg,#A6182E,#7A0F20);padding:10px 20px;disp
 .search-wrap input:focus{border-color:var(--red);}
 .cat-title{font-family:'Baloo 2',sans-serif;font-size:1.15rem;font-weight:700;color:var(--red);padding:20px 20px 6px;}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;padding:6px 20px;}
-.card{background:var(--card);border:2px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 2px 0 var(--border);}
+.card{background:var(--card);border:2px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 2px 0 var(--border);display:flex;flex-direction:column;}
+.card.sin-receta{border-color:#e0a3ad;}
 .card-head{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .card-name{font-weight:900;font-size:0.95rem;color:var(--text);}
 .card-count{font-size:0.68rem;color:var(--muted);background:var(--bg);padding:2px 9px;border-radius:50px;white-space:nowrap;}
-.ing-list{padding:6px 14px 12px;}
+.card-count.warn{background:#FBE2E6;color:var(--red);}
+.ing-list{padding:6px 14px 12px;flex:1;}
 .ing-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border);font-size:0.82rem;}
 .ing-row:last-child{border-bottom:none;}
 .ing-name{color:var(--text);text-transform:capitalize;}
 .ing-qty{color:var(--red);font-weight:800;white-space:nowrap;}
+.custom-tag{font-size:0.65rem;color:var(--green);font-weight:800;padding:8px 14px 0;}
+.no-receta{padding:14px;color:var(--muted);font-size:0.8rem;font-style:italic;}
+.card-actions{padding:10px 14px;border-top:1px solid var(--border);}
+.btn-edit-receta{width:100%;background:var(--blue);color:#fff;border:none;padding:9px;border-radius:8px;font-weight:700;font-size:0.78rem;cursor:pointer;}
+.btn-edit-receta.crear{background:var(--yellow);color:#1F1B15;}
+.btn-edit-receta:hover{opacity:.9;}
 .empty{text-align:center;padding:50px;color:var(--muted);}
+
+/* MODAL EDITAR RECETA */
+.overlay{display:none;position:fixed;inset:0;background:rgba(31,27,21,.7);z-index:500;align-items:center;justify-content:center;padding:20px;}
+.overlay.open{display:flex;}
+.modal{background:var(--card);border:3px solid var(--red);border-radius:14px;padding:22px;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;}
+.modal h3{font-family:'Baloo 2',sans-serif;color:var(--red);font-size:1.1rem;font-weight:700;margin-bottom:4px;}
+.modal .msub{font-size:0.75rem;color:var(--muted);margin-bottom:16px;}
+.ing-row-edit{display:flex;gap:8px;margin-bottom:8px;align-items:center;}
+.ing-row-edit input{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:8px;font-size:0.85rem;outline:none;font-family:inherit;}
+.ing-row-edit input:focus{border-color:var(--red);}
+.ing-row-edit .iname{flex:1;}
+.ing-row-edit .iqty{width:90px;}
+.ing-row-edit .iunit{width:44px;color:var(--muted);font-size:0.75rem;text-align:center;}
+.ing-row-edit button{background:none;border:none;color:var(--red);font-size:1.1rem;cursor:pointer;flex-shrink:0;}
+.add-ing-btn{background:var(--bg);border:1px dashed var(--border);color:var(--muted);padding:8px;border-radius:8px;width:100%;cursor:pointer;font-size:0.78rem;font-weight:700;margin:4px 0 14px;}
+.add-ing-btn:hover{border-color:var(--red);color:var(--red);}
+.modal-actions{display:flex;gap:8px;}
+.mbtn-cancel{flex:1;background:var(--border);border:none;color:var(--muted);padding:11px;border-radius:8px;font-weight:700;cursor:pointer;}
+.mbtn-ok{flex:2;background:var(--yellow);border:none;color:#1F1B15;padding:11px;border-radius:8px;font-weight:800;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -45,54 +72,185 @@ header{background:linear-gradient(135deg,#A6182E,#7A0F20);padding:10px 20px;disp
   <button class="logout" onclick="logout()">Salir</button>
 </header>
 <div class="intro">
-  Cada producto del menú tiene su <strong>receta</strong>: los ingredientes que consume. Cuando tomas un pedido y lo envías a cocina, el sistema <strong>descuenta automáticamente</strong> estas cantidades del inventario.
+  Cada producto del menú tiene su <strong>receta</strong>: los ingredientes que consume. Cuando tomas un pedido y lo envías a cocina, el sistema <strong>descuenta automáticamente</strong> estas cantidades del inventario. Si un plato nuevo (agregado desde "🍽️ Platos") aparece sin receta, usa <strong>"➕ Agregar receta"</strong> para ingresar tú mismo los ingredientes — no hace falta tocar código.
 </div>
 <div class="search-wrap">
   <input type="text" id="search" placeholder="🔍 Buscar producto o ingrediente..." oninput="render()"/>
 </div>
 <div id="cont"><div class="empty">Cargando recetas...</div></div>
 
+<!-- MODAL EDITAR/CREAR RECETA -->
+<div class="overlay" id="recetaOverlay">
+  <div class="modal">
+    <h3 id="mTitle">Editar receta</h3>
+    <div class="msub">Escribe el nombre del ingrediente tal como aparece en el inventario (hay sugerencias) y la cantidad que usa este plato.</div>
+    <div id="ingRows"></div>
+    <button class="add-ing-btn" onclick="agregarIngRow()">+ Agregar ingrediente</button>
+    <datalist id="invList"></datalist>
+    <div class="modal-actions">
+      <button class="mbtn-cancel" onclick="cerrarModal()">Cancelar</button>
+      <button class="mbtn-ok" onclick="guardarReceta()">💾 Guardar receta</button>
+    </div>
+  </div>
+</div>
+
 <script src="recetas.js"></script>
 <script>
 function logout(){sessionStorage.removeItem('bocao_sess');window.location.href='/login.html';}
 function fmtCant(n){return (Math.round(n*100)/100).toLocaleString('es-CO');}
 
+var CAT_ORDEN=['🍔 Hamburguesas','🌭 Perros Calientes','🍟 Salchipapas','🎁 Combos','➕ Adicionales','🥤 Bebidas','🎉 Promociones'];
+var productos=[], recetasDB={}, inventario=[], editandoProductoId=null;
+
+// Unidad real según el inventario (si el ingrediente existe ahí); si no, usa el valor por defecto de recetas.js
+function unidadReal(nombre){
+  var n=normIng(nombre);
+  var item=inventario.find(function(i){return normIng(i.nombre)===n;});
+  if(item){
+    if(item.unidad==='gramos')return'g';
+    if(item.unidad==='unidad')return'und';
+    return item.unidad||unidadDe(nombre);
+  }
+  return unidadDe(nombre);
+}
+
+function existeEnInventario(nombre){
+  var n=normIng(nombre);
+  return inventario.some(function(i){return normIng(i.nombre)===n;});
+}
+
+function recetaDe(id){
+  if(recetasDB[id]) return recetasDB[id].ingredientes||[];
+  if(RECETAS[id]) return RECETAS[id];
+  return null;
+}
+
 function render(){
   var q=(document.getElementById('search').value||'').toLowerCase().trim();
   var cont=document.getElementById('cont');
-  // agrupar por categoría en el orden de MENU_INFO
-  var cats={}, orden=[];
-  Object.keys(MENU_INFO).forEach(function(id){
-    if(!RECETAS[id]) return;
-    var info=MENU_INFO[id];
-    // filtro búsqueda: por nombre de producto o por algún ingrediente
+  var porCat={};
+  productos.forEach(function(p){
+    var receta=recetaDe(p.id);
     if(q){
-      var match=info.nombre.toLowerCase().indexOf(q)>=0;
-      if(!match) match=RECETAS[id].some(function(p){return p[0].toLowerCase().indexOf(q)>=0;});
+      var match=(p.nombre||'').toLowerCase().indexOf(q)>=0;
+      if(!match && receta) match=receta.some(function(par){return par[0].toLowerCase().indexOf(q)>=0;});
       if(!match) return;
     }
-    if(!cats[info.cat]){cats[info.cat]=[];orden.push(info.cat);}
-    cats[info.cat].push(id);
+    (porCat[p.categoria]=porCat[p.categoria]||[]).push(p);
   });
+  var cats=Object.keys(porCat);
+  var orden=CAT_ORDEN.filter(function(c){return porCat[c];}).concat(cats.filter(function(c){return CAT_ORDEN.indexOf(c)<0;}).sort());
 
   if(orden.length===0){cont.innerHTML='<div class="empty">No se encontró nada con «'+q+'».</div>';return;}
 
   var html='';
   orden.forEach(function(cat){
     html+='<div class="cat-title">'+cat+'</div><div class="grid">';
-    cats[cat].forEach(function(id){
-      var info=MENU_INFO[id], receta=RECETAS[id];
-      html+='<div class="card"><div class="card-head"><span class="card-name">'+info.nombre+'</span><span class="card-count">'+receta.length+' ingredientes</span></div><div class="ing-list">';
-      receta.forEach(function(p){
-        html+='<div class="ing-row"><span class="ing-name">'+p[0]+'</span><span class="ing-qty">'+fmtCant(p[1])+' '+unidadDe(p[0])+'</span></div>';
-      });
-      html+='</div></div>';
+    porCat[cat].forEach(function(p){
+      var receta=recetaDe(p.id);
+      var esCustom=!!recetasDB[p.id];
+      html+='<div class="card'+(receta?'':' sin-receta')+'">';
+      html+='<div class="card-head"><span class="card-name">'+p.nombre+'</span>';
+      html+=receta?('<span class="card-count">'+receta.length+' ingredientes</span>'):'<span class="card-count warn">⚠️ Sin receta</span>';
+      html+='</div>';
+      if(esCustom) html+='<div class="custom-tag">✏️ Receta personalizada</div>';
+      if(receta){
+        html+='<div class="ing-list">';
+        receta.forEach(function(par){
+          var falta=!existeEnInventario(par[0]);
+          html+='<div class="ing-row"><span class="ing-name">'+(falta?'⚠️ ':'')+par[0]+'</span><span class="ing-qty">'+fmtCant(par[1])+' '+unidadReal(par[0])+'</span></div>';
+        });
+        html+='</div>';
+      } else {
+        html+='<div class="no-receta">Este plato no descuenta inventario todavía.</div>';
+      }
+      html+='<div class="card-actions"><button class="btn-edit-receta'+(receta?'':' crear')+'" onclick="abrirModal(\''+p.id+'\')">'+(receta?'✏️ Editar receta':'➕ Agregar receta')+'</button></div>';
+      html+='</div>';
     });
     html+='</div>';
   });
   cont.innerHTML=html;
 }
+
+function actualizarInvList(){
+  var dl=document.getElementById('invList'); dl.innerHTML='';
+  inventario.slice().sort(function(a,b){return(a.nombre||'').localeCompare(b.nombre||'');}).forEach(function(i){
+    var o=document.createElement('option'); o.value=i.nombre; dl.appendChild(o);
+  });
+}
+
+function agregarIngRow(nombre,cantidad){
+  var wrap=document.getElementById('ingRows');
+  var row=document.createElement('div'); row.className='ing-row-edit';
+  row.innerHTML='<input type="text" class="iname" list="invList" placeholder="Nombre del ingrediente" value="'+(nombre||'').replace(/"/g,'&quot;')+'"/>'+
+    '<input type="number" class="iqty" step="any" placeholder="Cantidad" value="'+(cantidad!=null?cantidad:'')+'"/>'+
+    '<span class="iunit"></span>'+
+    '<button onclick="this.parentElement.remove()">✕</button>';
+  wrap.appendChild(row);
+  var iname=row.querySelector('.iname'), iunit=row.querySelector('.iunit');
+  function refrescarUnidad(){ iunit.textContent=iname.value?unidadReal(iname.value):''; }
+  iname.addEventListener('input',refrescarUnidad);
+  refrescarUnidad();
+}
+
+window.abrirModal=function(productoId){
+  editandoProductoId=productoId;
+  var p=productos.find(function(x){return x.id===productoId;});
+  document.getElementById('mTitle').textContent=(recetaDe(productoId)?'Editar receta — ':'Nueva receta — ')+(p?p.nombre:'');
+  document.getElementById('ingRows').innerHTML='';
+  actualizarInvList();
+  var receta=recetaDe(productoId)||[];
+  if(receta.length===0) agregarIngRow('','');
+  else receta.forEach(function(par){agregarIngRow(par[0],par[1]);});
+  document.getElementById('recetaOverlay').classList.add('open');
+};
+window.cerrarModal=function(){document.getElementById('recetaOverlay').classList.remove('open');editandoProductoId=null;};
+
+window.guardarReceta=function(){
+  var ingredientes=[];
+  document.querySelectorAll('#ingRows .ing-row-edit').forEach(function(row){
+    var nombre=row.querySelector('.iname').value.trim();
+    var cantidad=parseFloat(row.querySelector('.iqty').value);
+    if(nombre && cantidad>0) ingredientes.push({nombre:nombre,cantidad:cantidad});
+  });
+  if(ingredientes.length===0){alert('Agrega al menos un ingrediente con cantidad mayor a 0.');return;}
+  var p=productos.find(function(x){return x.id===editandoProductoId;});
+  if(window._guardarReceta) window._guardarReceta(editandoProductoId,{ingredientes:ingredientes,nombreProducto:p?p.nombre:''});
+  cerrarModal();
+};
+
 render();
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, doc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+var app=initializeApp({apiKey:"AIzaSyB7fkzZNNNY5oWt5oSAT-2wSwtJh69TKvs",authDomain:"e703-18361.firebaseapp.com",projectId:"e703-18361",storageBucket:"e703-18361.firebasestorage.app",messagingSenderId:"670782708176",appId:"1:670782708176:web:db6470aa8e73da59a201d5"});
+var db=getFirestore(app);
+
+window._guardarReceta=function(productoId,data){
+  setDoc(doc(db,'recetas',productoId),Object.assign({},data,{fechaActualizacion:serverTimestamp()})).catch(function(e){alert('Error al guardar la receta: '+e.message);});
+};
+
+onSnapshot(collection(db,'productos'),function(snap){
+  productos=[];
+  snap.forEach(function(d){productos.push(d.data());});
+  productos.sort(function(a,b){return(a.nombre||'').localeCompare(b.nombre||'');});
+  render();
+});
+onSnapshot(collection(db,'recetas'),function(snap){
+  recetasDB={};
+  snap.forEach(function(d){
+    var data=d.data();
+    recetasDB[d.id]={ingredientes:(data.ingredientes||[]).map(function(i){return[i.nombre,i.cantidad];})};
+  });
+  render();
+});
+onSnapshot(collection(db,'inventario'),function(snap){
+  inventario=[];
+  snap.forEach(function(d){inventario.push(d.data());});
+  render();
+});
 </script>
 </body>
 </html>
